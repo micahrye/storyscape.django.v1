@@ -1,0 +1,31 @@
+  <form id='create-story-form' class='story-toolbar-item' >
+      <div class="form-item">Title<br/>
+        <textarea name="title" id="create-story-title" 
+           default-text="Add title"
+           class="required create-text default-text story-form-item" 
+           minlength="2">Add title</textarea>
+      </div>
+	  <div class="form-item">Author<br/>
+        <textarea 
+                  id="create-story-author" readonly 
+               class='required create-text story-form-item'>{{ user.username }}</textarea>
+      </div>
+      <div class="form-item">Genre<br/>
+        <textarea name="genre" id="create-story-genre" default-text="Add genre"
+             class="required create-text default-text story-form-item" 
+             minlength="2">Add genre</textarea>
+      </div>
+      <div class="form-item">Description<br/>
+        <textarea name="description" id="create-story-desc" 
+            default-text="Add description"
+            class="required create-text default-text story-form-item" 
+            minlength="2">Add description</textarea>
+      </div>
+      <div class="form-item">Tags<span class='small-text'>(separate with comma)</span><br/>
+        <textarea name="tags" id="create-story-tags" default-text="Add Tags"
+                class="required create-text default-text story-form-item" 
+                minlength="2">Add Tags</textarea>
+      </div>
+        <button type='button' id='create-story-btn' class='btn'>Create</button>
+        <button type='button' id='cancel-create-story-btn' class='btn'>Cancel</button>
+  </form>

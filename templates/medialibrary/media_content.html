@@ -1,0 +1,34 @@
+{% if mediaobjects %}
+	{% spaceless %}
+	<div id="thumbbox" class="thumbnail-group">
+		{% for mo in mediaobjects %}
+			<div class="thumbnail-container" data-mediaobject-id="{{ mo.id }}">
+				<div class="thumbnail-frame">
+					{% if request.user.is_authenticated %}
+						<div class="toggle-favorite">
+							<span class="unfavorite-icon{% if not mo.id in favorited_ids %} hidden{% endif %}"></span>
+							<span class="favorite-icon{% if mo.id in favorited_ids %} hidden{% endif %}"></span>
+						</div>
+					{% endif %}
+					<a href="{{ MEDIA_URL }}{{ mo.url }}" class="image-thumbnail-link" title='{{ mo.tags|join:" " }}'>
+						<img src='{{ MEDIA_URL }}{{ mo.url }}' class='image-thumbnail' />
+					</a>
+				</div>
+		    	<div class='image-tags' > 
+					{% for word in mo.tags|slice:":4" %}
+		    			<div class = "tag-link">{{word}}</div>
+		    		{% endfor %}
+		    	</div>
+	    	</div>
+	    {% endfor %}
+	</div>
+	    
+	<div id="pages-wrapper">
+	    <div id='pages'>
+	       <div id="jpaginate"> </div>
+	    </div>
+	</div>
+	{% endspaceless %}
+{% else %}
+	<h1>No images found!</h1>
+{% endif %}

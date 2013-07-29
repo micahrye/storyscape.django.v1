@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+{% load tagging_tags %}
+
+{% block external_style %} 
+  <link type="text/css" rel="stylesheet" 
+        href="{{ STATIC_URL }}js/jpaginate/css/style.css" />
+  <link type="text/css" rel="stylesheet" 
+        href="{{ STATIC_URL }}ml_static/medialibrary.css" />
+  <link type="text/css" rel="stylesheet" 
+        href="{{ STATIC_URL }}jquery.sodiio.css" />
+{% endblock %}
+
+{% block external_javascript %}
+  <script src="{{ STATIC_URL }}js/jpaginate/jquery.paginate.js" 
+          type="text/javascript">
+  </script>
+  <script src="{{ STATIC_URL }}jquery.sodiio.js" 
+          type="text/javascript">
+  </script>
+{% endblock %}
+
+
+{% block inline_style %}
+  <style type="text/css">
+  #feedback-btn{ float:right; margin-right:40px; } 
+  #jpaginate{ margin-top:20px; } 
+  .story-tags{
+    display: none; 
+  }
+  .tag-link {
+    color: #808080;
+    font-size: 80%;
+    float: left;
+    padding: 3px 3px 0 3px;
+    line-height: 1em;
+  }
+  .tag-link:hover {
+    color: black !important; 
+    cursor: pointer; 
+  }
+  </style>
+{% endblock %}
+
+{% block inline_javascript %}
+<script type="text/javascript">
+$(function(){
+  configAjaxSend();
+  var searchTerm = "";
+  var currentPage = "1";
+  //'saved' class gets added now, but not when page reloads
+  var saved = [];
+  var user = $("#user").attr('name');     
+  var url = $('#url-info').val(); 
+  //set side navigation indicator 
+  $('#media-btn').addClass('navigator');
+
+  // NOTE: this is being used for dev and beta testers
+  initializeFeedback( $('#url-info').val() );
+
+  function loadStoryThumb(img) {
+    $(img).attr('src', '{{ MEDIA_URL }}'+$(img).attr('story-url'));
+  }
+  //set thumbnail images
+  $('.story-thumb').each(function(index){
+    loadStoryThumb(this);
+  });
+  //set search box with default term
+  $("#search").val("search");
+  $("#search-story-button").click(function(evt){
+    searchForWord();
+  });
+  $("#search").keydown(function(e){
+    code= (e.keyCode ? e.keyCode : e.which);
+    if (code == 13){
+      $("#search-story-button").css("font-size", "");
+      $("#search-story-button").css("background-color", " #ccc");
+    } 
+  });
+  $("#search").keyup(function(e){
+    code= (e.keyCode ? e.keyCode : e.which);
+    if (code == 13){
+      $("#" + currentPage).addClass("link");
+      currentPage = "1";
+      $("#" + currentPage).removeClass("linkHover");
+      $("#" + currentPage).removeClass("link");
+      searchForWord();
+      $("#search-story-button").css("background-color", " #FFFFFF");
+      $("#search-story-button").css("font-size", "");
+    } 
+  });
+  $("#search").focusout(function(){
+    if ($(this).val() == "") {
+        $(this).val("search");
+        $(this).css("color", "grey");
+        }
+  });
+  $("#search").focusin(function(){
+    if ($(this).val() == "search"){
+        $("#search").val("");
+        $(this).css("color", "black");
+    }  
+  }); 
+
+  function searchForWord(){
+    var searchTerm = $("#search").val().trim();
+    if(searchTerm.length <= 0 )
+        return
+    $.ajax({
+        type: "GET",
+        url: url,
+        data: {TEXT_SEARCH: 'True', SEARCH_TERM: searchTerm},
+        success: function(data){
+          successfulSearch($.evalJSON(data), 1);
+        },
+        error: function(data){
+            msg = "error saving, and the data is "+data;
+            console.log(data);
+            alert(msg);
+        }
+    }); 
+  }
+  /*
+   page advance: called when user clicks on the "next page"
+  */ 
+  var viewPageClick = function(pageNumber){
+    //TODO: get rid of currentPage if not needed 
+    currentPage = pageNumber;// $(this).attr("id");
+    $('.pageHover').removeClass('pageHover');
+    $("#" + currentPage).addClass("pageHover");
+    var searchTerm = $("#search").val().trim();
+    if( searchTerm == "search") searchTerm = "";
+    $.ajax({
+        type: "GET",
+        url: url,
+        data: {SEARCH_PAGE_CHANGE:'True', 
+               SEARCH_TERM:searchTerm, 
+               PAGE_NUMBER:parseInt(currentPage)},
+        success: function(data){
+            $("html, body").animate({ scrollTop: 0 }, "slow");
+            successfulSearch($.evalJSON(data), currentPage);
+        },
+        error: function(data){
+            alert("error on page advance");
+        }
+    });
+  }; 
+
+  function successfulSearch(dataJSON, page){
+    var numPages = dataJSON['num_pages']; 
+    var randomTags = dataJSON['random_tags'];
+    var stories = $.evalJSON(dataJSON['stories']);
+    //added by mre
+    for(var i=0; i < stories.length; i++){
+        stories[i]['extras']['all_tags'] = 
+               $.evalJSON(stories[i]['extras']['all_tags']); 
+    }
+    updateStoryThumbs(stories);
+    config['count'] = numPages; 
+    pconfig['start'] = page; 
+    $("#jpaginate").paginate(pconfig);
+    window.scrollTo(0, 0);
+  }
+
+  //MRE this is were new story thumbs ect. are added 
+  function updateStoryThumbs(stories){
+    var numObjs = stories.length; 
+    $('.fancy-container').remove()
+    $('.story-tags').remove(); 
+    for(i = 0; i < numObjs; i++){
+      var $elem = $(
+            "<img class='story-thumb' src='' " +  
+            " width='208px' height='150px' story-id="  + 
+            stories[i].pk + " story-url="+ 
+            stories[i]['fields']['thumb_url']+" />" 
+      ); 
+      var tags = stories[i]['extras']['all_tags']; 
+      var len = Math.min(tags.length, 3);
+      var $storyTags = $('<div class="story-tags" story-id="'+stories[i].pk+'" />');  
+      for (j=0; j<len; j++) {
+                $storyTags.append("<div class='tag-link'>"+
+                tags[j]+"</div>");
+      }
+      $('#thumbbox').append($elem);
+      $('#thumbbox').append($storyTags);
+    }//end for
+    
+    $('.story-thumb').each(function(index){
+      loadStoryThumb(this);
+    });
+    imagesToFancyContainer();  
+  }//end of upateMediaObjects method
+
+  var pconfig = { }; 
+  function getTotalNumberPages(){
+    $.ajax({
+      type:"GET", 
+      dataType: 'json',
+      url: url, 
+          data: {TOTAL_NUM_PAGES: "STORIES"}, 
+      success: function(numPages){ 
+            pconfig = {
+            count: numPages,
+            start: 1,
+            display: 10,
+            border: false,
+            text_color: '#79B5E3',
+            background_color: 'none',    
+            text_hover_color: '#2573AF',
+            background_hover_color  : 'none', 
+            images: false,
+            mouse: 'press',
+            onChange: viewPageClick
+          };
+  
+          $("#jpaginate").paginate(pconfig);
+        }, 
+      error: function(data){
+          alert('unable to get number of pages'); 
+  
+        } 
+    }) ;
+  };  
+  getTotalNumberPages(); 
+
+  var info = function(){
+    var msg = 'Comming soon!'; 
+    alert(msg);
+  }; 
+  var rightButton = function(){
+      var storyId = $(this).parent().parent().find('img').attr('story-id'); 
+      window.location = '/storyscape/preview/' + storyId + '/';  
+  }; 
+  
+  var usrMsg = 'Checkout the still version of the story online.'; 
+  function imagesToFancyContainer(){ 
+    $('.story-thumb').sodiio('fancyContainer', {
+            'fancy-container': {'height':'205px'}, 
+            'fancy-controls': {'height':'50px'},
+            'fancy-buttons': {
+              'left-button'  : true, 
+              'left-text'    : 'About', 
+              'left-title'  : '',
+              'left-click'   : info, 
+              'right-button' : true,  
+              'right-text'   : 'Preview', 
+              'right-title'  : usrMsg,
+              'right-click'  : rightButton
+            }, 
+            'happy': 'say it', 'sad':'dont'  }
+    );
+    $('.story-tags').each( function() {
+      var img = $('.story-thumb[story-id="'+ 
+                   $(this).attr('story-id') +'"]'); 
+      $(img).parent().siblings('.fancy-controls')
+            .children('.fancy-description').append(this); 
+      $(this).css({ 'display':'inline' });  
+    }); 
+    $('.fancy-btn-left').tooltip(); 
+    $('.fancy-btn-right').tooltip(); 
+  } 
+  imagesToFancyContainer(); 
+  //whenever .tag-link added to #thumbbox bind click to it 
+  $('#thumbbox').on('click', '.tag-link', 
+    function(){ 
+      searchTerm = $(this).html();
+      $("#search").css("color", "black");
+      $("#search").val(searchTerm);
+      searchForWord(); 
+    } 
+  );
+}); // end jQuery function
+
+</script>
+{% endblock %}
+
+
+
+{% block content %}
+<h1>Stories</h1>
+  <div id="thumbbox">
+    {% for story in stories %}
+      <img src='' width='200px' height='150px' class='story-thumb' 
+            story-id={{ story.id }} 
+            story-url={{ story.thumb_url }} 
+            story-tag={{tags}} />
+      <div class='story-tags' story-id={{ story.id }} > 
+        {% for tag in story.tags|slice:4 %}
+			<div class='tag-link'>{{tag}}</div> 
+        {% endfor %} 
+      </div> 
+    {% empty %}
+    	<h2>No stories!</h2>
+    	<p>Looks like we don't have any stories yet. That means you can be the first to <a href="{% url storyscape %}">create one</a>!
+    {% endfor %}
+
+  </div>
+
+  <div id="pages-wrapper">
+    <div id='pages'>
+       <div id="jpaginate"> </div>
+    </div>
+  </div>
+    
+<input id=user type="hidden" name="{{ user.username }}" />
+<input id="url-info" type="hidden"
+    value="{% url story_library %}" />
+     
+{% endblock %}
+
+<!--end of main-content-->

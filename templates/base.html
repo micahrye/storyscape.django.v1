@@ -1,0 +1,39 @@
+<!doctype html>
+<html class="{% block htmlclass %}{% endblock %}">
+<head>
+<title>{% block title %}StoryScape{% endblock %}</title>
+<meta name="description" content="{% block description %}StoryScape{% endblock %}">
+<link rel='stylesheet' type='text/css' href='http://fonts.googleapis.com/css?family=Oxygen:400,700|Source+Sans+Pro:200,300,400'>
+<link rel="stylesheet" type='text/css' href="/static/css/jpaginate.css">
+<link rel="stylesheet" type='text/css' href="/static/bootstrap/css/bootstrap.css">
+<link rel="stylesheet" href="/static/fancybox/jquery.fancybox.css?v=2.1.5" type="text/css" media="screen" />
+<link rel="stylesheet" type='text/css' href="/static/css/style.css">
+</head>
+<body class="{% block bodyclass %}{% endblock %}">
+
+	{% include "header.html" %}
+	
+	<div class="content-wrapper">
+		<div class="content">
+			{% block content %}{% endblock %}
+		</div>
+	</div>
+	
+	
+	<script type="text/javascript">
+	StoryScape = window.StoryScape || {};
+	PAGE_NAME = "{% block pagename %}{% endblock %}";
+	</script>
+	{% block extra_javascript %}{% endblock %}
+	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+	<script type="text/javascript" src="//ajax.aspnetcdn.com/ajax/jquery.validate/1.11.1/jquery.validate.min.js"></script>
+	<script type="text/javascript" src="//ajax.aspnetcdn.com/ajax/jquery.validate/1.11.1/additional-methods.min.js"></script>
+	<script type="text/javascript" src="/static/fancybox/jquery.fancybox.pack.js?v=2.1.5"></script>
+	<script type="text/javascript" src="/static/bootstrap/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="/static/js/underscore-min.js"></script>
+	<script type="text/javascript" src="/static/js/jquery.form.js"></script>
+	<script type="text/javascript" src="/static/js/jquery.paginate.js"></script>
+	<script type="text/javascript" src="/static/js/script.js"></script>
+
+</body>
+</html>

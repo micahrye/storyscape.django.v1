@@ -1,0 +1,117 @@
+<div id='control-panel'>
+    <div id='text-control-panel'> 
+      <div class='control-panel-header'>
+        <span>Text</span>
+      </div>
+      <div id='font-style-size'>
+        <button id='add-text-mo' class='text-controls'>Add</button>
+        <button id='delete-text' class='text-controls'>Delete</button>
+        <div id='font-size-control' class='text-controls'>
+          <span class='small-text'>Size</span>
+          <select id='font-size-selector'>
+            <option value='12'>12</option>
+            <option value='16'>16</option>
+            <option value='18' selected='selected'>18</option>
+            <option value='22'>22</option>
+            <option value='24'>24</option>
+            <option value='28'>28</option>
+            <option value='32'>32</option>
+            <option value='36'>36</option>
+            <option value='42'>42</option>
+            <option value='48'>48</option>
+            <option value='52'>52</option>
+            <option value='58'>58</option>
+            <option value='64'>64</option>
+            <option value='72'>72</option>
+            <option value='96'>96</option>
+            <option value='124'>124</option>
+          </select>
+        </div>
+        <div id='color-control' style='float:right;'>
+          <input type='text' id='color-input' /> 
+          <em id='basic-log'></em> 
+        </div>
+      <div id='text-entry-panel'>
+        <textarea id='text-entry'></textarea>
+      </div>
+      </div>
+    </div>
+    <div id='attribute-control-panel'>
+      <div class='control-panel-header'>
+        <span>Object Attributes</span>
+      </div>
+      
+      <div id='animations-panel' >
+        <div id='animations'>
+          <div><span class='small-text' style='margin-left:15px;'>Animations</span></div>
+          <select id='animation-selector'>
+            <option class='mo-action' 
+                    mo-action='0' value='0' selected='selected'>-</option>
+            <option class='mo-action' value='105' 
+                    mo-action='105'>Fade Out</option>
+            <option class='mo-action' value='113'
+                     mo-action='113'>Toggle Fade</option>
+            <option class='mo-action' value='102'
+                     mo-action='102'>Expand</option>
+            <option class='mo-action' value='103'
+                    mo-action='103'>Shrink</option>
+            <option class='mo-action' value='104'
+                    mo-action='104'>Expand-Shrink</option>
+            <option class='mo-action' value='114'
+                    mo-action='114'>H-Shake</option>
+            <option class='mo-action' value='115'
+                    mo-action='115'>V-Shake</option>
+            <option class='mo-action' value='107'
+                    mo-action='107'>Jump</option>
+            <option class='mo-action' value='112'
+                    mo-action='112'>Spin</option>
+            <option class='mo-action' value='110'
+                    mo-action='110'>Drag</option>
+            <option class='mo-action' value='111'
+                    mo-action='111'>Rubberband</option>
+            <option class='mo-action' value='116'
+                    mo-action='116'>Slide Left</option>
+            <option class='mo-action' value='101'
+                    mo-action='101'>Slide Right</option>
+          </select>
+        </div>
+        <div id='triggers'>
+          <div><span class='small-text' style='margin-left:10px'>Animate On</span></div>
+          <select id='trigger-selector'>
+            <option class='mo-action' value='0' mo-trigger='0'
+                   selected='selected'>-</option>
+            <option class='mo-action' value='1' mo-trigger='1'>Touch</option>
+            <option class='mo-action' value='2' mo-trigger='2'>Sound</option>
+            <!-- <option class='mo-action' value='9' mo-trigger='9'>Img-trigger</option> --> 
+          </select>
+        </div>
+        <div id='play-animation'>
+          <button id='animation-run' mo-action='animate'>Play</button>
+        </div>
+      </div>
+      
+      <div id='actions-panel' >
+        <div id='actions'>
+          <span style='margin-left:5px;' class='small-text'>Goto Page</span>
+          <select id='goto-selector'>
+            <option class='mo-action' 
+                    mo-action='0' value='-1' selected='selected'>-</option>
+          </select>
+          <span style='margin-left:5px;' class='small-text'>on touch</span>
+        </div>
+      </div>
+
+      <div id='layout-panel'>
+        <div><span>Layout</span></div>
+        <div style='float:left; margin:5px 0 0 10px;'>
+          <span class='mo-layout action-text action-btn' mo-action='up-z-index'>Bring Forward</span>
+          <span class='mo-layout action-text action-btn' mo-action='down-z-index'>Send Backward</span>
+        </div>
+        <div style='float:left; margin:5px 0 0 10px;'>
+          <span class='mo-layout action-text action-btn' mo-action='top-z-index'>Bring to Front</span>
+          <span class='mo-layout action-text action-btn' mo-action='bottom-z-index'>Send to Back</span>
+        </div>
+      </div>
+    </div>
+  </div>
+

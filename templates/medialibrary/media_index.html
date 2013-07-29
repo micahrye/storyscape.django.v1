@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load tagging_tags %}
+
+{% block pagename %}IMAGE_LIBRARY{% endblock %}
+
+{% block content %}
+<h1>Image Library</h1>
+<div class="top-main-buttons">
+	{% if request.user.is_authenticated %}
+		<a href="#" id="image-upload" class="btn large-btn btn-success">Upload a New Image</a>
+	{% endif %}
+</div>
+
+<div class="navbar">
+	<div class="navbar-inner">
+		<form class="navbar-search pull-left" id="search-form">
+		  <input type="text" class="search-query" placeholder="Search" id="search-field">
+		</form>
+		
+		{% if request.user.is_authenticated %}
+		<ul class="nav pull-right">
+			<li class="divider-vertical"></li>
+			<li class="active"><a href="#" id="all-images-nav" class="image-type-nav">All Images</a></li>
+			<li class="divider-vertical"></li>
+			<li class=""><a href="#" id="favorite-images-nav" class="image-type-nav">Favorite Images</a></li>
+		</ul>
+		{% endif %}
+	</div>
+</div>
+<div id="pagination_wrapper">
+	<div id="pagination_loader">
+		<div id="spinner">
+			<div id="floatingCirclesG">
+				<div class="f_circleG" id="frotateG_01">
+				</div>
+				<div class="f_circleG" id="frotateG_02">
+				</div>
+				<div class="f_circleG" id="frotateG_03">
+				</div>
+				<div class="f_circleG" id="frotateG_04">
+				</div>
+				<div class="f_circleG" id="frotateG_05">
+				</div>
+				<div class="f_circleG" id="frotateG_06">
+				</div>
+				<div class="f_circleG" id="frotateG_07">
+				</div>
+				<div class="f_circleG" id="frotateG_08">
+				</div>
+			</div>
+		</div>
+		<h2>Loading...</h2>
+	</div>
+	<div id="pagination_content">
+	</div>
+</div>
+
+
+<input id=user type="hidden" name="{{ user.username }}" />
+<input id="url-info" type="hidden" value="{% url media_library %}" />
+<input id="image-upload-url" type="hidden" value="{% url media_image_upload %}" />
+     
+{% endblock %}
+
+{% block extra_javascript %}
+<script type="text/javascript">
+window.StoryScape.SEARCH_TERM = '';
+window.StoryScape.CURRENT_PAGE = 1;
+window.StoryScape.NUMBER_OF_PAGES = 0;
+window.StoryScape.ALL_IMAGES = true;
+
+</script>
+{% endblock %}

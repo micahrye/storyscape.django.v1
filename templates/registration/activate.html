@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+<p>{% trans "Unable to activate your account, please try to login or create a new account" %}</p>
+
+<p><a href="{% url auth_login %}">{% trans "Log in" %}</a></p>
+
+
+<p>{% trans "Account activate failed" %}</p>
+
+
+{% endblock %}

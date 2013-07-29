@@ -1,0 +1,7 @@
+<div id="image-upload-wrapper" class="modal-form-wrapper">
+	<h1>Upload Image to the Library</h1>
+	<form id='image-upload-form' enctype="multipart/form-data" action="{% url media_image_upload %}" method="post">{% csrf_token %}
+	  {{ form.as_p }}
+		<h2 class="success_message">{% if success %}Success!{% endif %}</h2><input type="submit" value="Upload" class="btn" />
+	</form>
+</div>

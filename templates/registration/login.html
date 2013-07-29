@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}StoryScape Login{% endblock %}
+
+{% block content %}
+<div class="form-content">
+	<h1 class="simple-form-title">Log In</h1>
+	<form method="post" action=".">
+	{% csrf_token %}
+	  <input type="hidden" name="next" value="{{ next }}" />
+	  {{ form.as_p }}
+	
+		<p class="reminder-text"><a href="{% url auth_password_reset %}" class="forgotpassword">Forgot Password</a>
+	  		<input class="btn" type="submit" value="Submit" />
+	  	</p>
+	</form>
+</div>
+
+
+{% endblock %}

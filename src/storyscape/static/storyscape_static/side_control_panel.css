@@ -1,0 +1,85 @@
+<style>
+#test-content{
+  border:1px red dashed; 
+  width: 800px; 
+  height:600px; 
+}
+#control-panel{
+  border:1px solid #ccc; 
+  width: 280px; 
+  height: 466px; 
+  float:left;
+  margin-top:15px; 
+  margin-left:5px;
+}
+#text-control-panel{
+  height: 255px; 
+  margin-bottom:6px;
+} 
+#attribute-control-panel{
+  height: 160px; 
+} 
+.control-panel-header{
+  border:1px solid #ccc;
+  font-weight: bold; 
+  font-style:italic; 
+  background-color:#EEF0F3;
+} 
+#text-style-size{
+  border:1px solid #ccc; 
+  height:35px; 
+} 
+#text-entry-panel{
+  height:200px; 
+} 
+#text-entry{
+  height:200px; 
+  width: 274px;
+  resize:none; 
+} 
+#font-size-control{ 
+  width: 85px; 
+  margin: 5px 0 0 10px;
+} 
+.text-controls{ 
+  float:left; 
+  margin-top:5px; 
+}
+#animations-panel{
+  border: 1px solid #ccc; 
+  height:45px; 
+  margin-top:5px; 
+} 
+#animations{ 
+  float:left;
+}
+#trigger-selector{ margin-left:10px; } 
+#triggers{ 
+  float:left;
+  margin-left:0px; 
+}
+#layout-panel{ 
+  height:86px; 
+  border:1px solid #ccc; 
+  margin-top:5px; 
+}
+#play-animation{
+  float:left;
+  margin-top:17px; 
+  margin-left:5px; 
+  border:1px green solid; 
+} 
+.action-text{
+  color:#545454;
+}
+.action-text:hover{
+  color:black;
+} 
+.action-btn{
+  border:1px black solid;
+  width: 120px; 
+  margin-bottom:5px;
+  display:block;
+  cursor:pointer;
+} 
+</style>
