@@ -1,4 +1,4 @@
-from django.conf.urls.defaults import patterns, url, include
+from django.conf.urls.defaults import patterns, url
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -14,7 +14,7 @@ urlpatterns = patterns('storyscape.views',
     #(r'^(?P<poll_id>\d+)/details/$', 'detail'),
     
     
-    url(r'^preview/(?P<story_id>\d+)/$', include('storyscape_stills.urls')),
+    url(r'^preview/(?P<story_id>\d+)/$', 'story_preview'),
     url(r'^reader/$', 'reader_info', name="reader_info"),
 
 )

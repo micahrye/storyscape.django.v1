@@ -443,7 +443,7 @@ def storyscape(request):
     media_objects = ml.media_object.filter(Q(format__label='png') | Q(format__label='jpg')).order_by('-id')[:NUM_ITEMS_PER_PAGE]
     
     return render_to_response(
-                 'storyscape/storyscape.html',
+                 'storyscape/create.html',
                  {'user': request.user, 
                   "media_objects": media_objects,
                   "stories":stories},
@@ -655,8 +655,9 @@ def get_story(request, username):
 
 
 def reader_info(request):
-    return render_to_response('storyscape/reader.html', 
+    return render_to_response('storyscape/about_reader.html', 
                               {}, 
                               context_instance=RequestContext(request))
 
-
+def story_preview(request, story_id):    
+    return render_to_response( request, 'story_preview.html', dict(story_id=story_id), context_instance=RequestContext(request) )

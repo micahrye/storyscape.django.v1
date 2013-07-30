@@ -23,7 +23,7 @@ from tagging.utils import LOGARITHMIC
 from medialibrary.models import MediaLibrary, MediaObject, ImageUploadForm2, MediaFormat, MEDIAOBJECT_max_length_name, MediaType
 from storyscape.models import Story
 
-NUM_ITEMS_PER_PAGE = 32
+NUM_ITEMS_PER_PAGE = 15
 NUM_TAGS_PER_PAGE = 50
 
 
@@ -149,6 +149,7 @@ def get_media_objects(request):
     page_number = int(request.GET.get('PAGE_NUMBER', 1))
     search_term = request.GET.get('SEARCH_TERM', '')
     get_all_images = request.GET.get('GET_ALL_IMAGES', 'true') == 'true'
+    need_add_buttons = request.GET.get('NEED_ADD_BUTTONS', 'true') == 'true'
     
     if search_term:
         tag_query = Tag.objects.filter(name__icontains=search_term)
@@ -182,6 +183,7 @@ def get_media_objects(request):
 
     content = render_to_string("medialibrary/media_content.html", dict(mediaobjects = objs,
                                               favorited_ids = favorited_ids,
+                                              need_add_buttons = need_add_buttons,
                                               paginator = paginator), context_instance=RequestContext(request))
     
     return HttpResponse(simplejson.dumps(dict(pages = paginator.num_pages,

@@ -4,15 +4,27 @@
 		{% for mo in mediaobjects %}
 			<div class="thumbnail-container" data-mediaobject-id="{{ mo.id }}">
 				<div class="thumbnail-frame">
+					{% if not need_add_buttons %}
+						<a href="{{ MEDIA_URL }}{{ mo.url }}" class="image-thumbnail-link" title='{{ mo.tags|join:" " }}'>
+							<img src='{{ MEDIA_URL }}{{ mo.url }}' class='image-thumbnail' />
+						</a>
+					{% else %}
+						<img src='{{ MEDIA_URL }}{{ mo.url }}' class='image-thumbnail' />
+						<div class="media-overlay add-button">
+							<span class="icon add-icon"></span>
+							Add Image to Page
+						</div>
+						<div class="media-overlay been-added">
+							<span class="icon success-icon"></span>
+							Image Added!
+						</div>
+					{% endif %}
 					{% if request.user.is_authenticated %}
 						<div class="toggle-favorite">
 							<span class="unfavorite-icon{% if not mo.id in favorited_ids %} hidden{% endif %}"></span>
 							<span class="favorite-icon{% if mo.id in favorited_ids %} hidden{% endif %}"></span>
 						</div>
 					{% endif %}
-					<a href="{{ MEDIA_URL }}{{ mo.url }}" class="image-thumbnail-link" title='{{ mo.tags|join:" " }}'>
-						<img src='{{ MEDIA_URL }}{{ mo.url }}' class='image-thumbnail' />
-					</a>
 				</div>
 		    	<div class='image-tags' > 
 					{% for word in mo.tags|slice:":4" %}

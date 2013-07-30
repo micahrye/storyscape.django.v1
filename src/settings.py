@@ -138,7 +138,6 @@ INSTALLED_APPS = (
     'medialibrary',
     'storyscape',
     'registration',
-    'storyscape_stills',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )

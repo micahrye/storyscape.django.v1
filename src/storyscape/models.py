@@ -58,7 +58,7 @@ class Page(models.Model):
 
     def __unicode__(self):
         try: 
-            msg = "Page- " + str(self.page_number) + ": Stroy- " + self.story.title
+            msg = "Page- " + str(self.page_number) + ": Story- " + self.story.title
         except ObjectDoesNotExist: 
             msg = "Page , not populated yet"
 

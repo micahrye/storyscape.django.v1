@@ -1,7 +1,6 @@
 .jPaginate{
     height:34px;
     position:relative;
-	width:100%;
 }
 .jPaginate a{
     cursor:pointer;

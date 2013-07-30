@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}StoryScape{% endblock %}
+{% block pagename %}CREATE_STORY{% endblock %}
+
+
+{% block content %}
+<h1>StoryScape</h1>
+
+<div id='storyscape-container'>
+ 
+ {% spaceless %}
+<div> 
+	<div id='builder-pane-container' class="builder-pane-container"> 
+		<div class="builder-container left">
+			<div id="builder-pane" class="builder-pane">
+			</div>
+			{% include "storyscape/storyline_navigation.html" %} 
+		</div>
+		<div class="builder-container right">
+			<div id='control-panel' class='control-panel'>
+				<div class="navbar">
+					<div class="navbar-inner builder-topnav">
+						<ul class="nav pull-left">
+							<li class=""><a href="#" id="new-story" class="">New</a></li>
+							<li class="divider-vertical"></li>
+							<li class=""><a href="#" id="open-story" class="">Open</a></li>
+							<li class="divider-vertical"></li>
+							<li class=""><a href="#" id="save-story" class="">Save</a></li>
+							<li class="divider-vertical"></li>
+						</ul>
+					</div>
+				</div>
+						
+				<div class="context-sensitive-menu story-menu">
+					<form id='create-story-form' class='story-toolbar-item' >
+					  	<div>
+					    	<label>Title</label>
+					    	<input type="text" name="title" id="story-title">
+					  	</div>
+					  	<div>
+						    <label>Genre</label>
+						    <input type="text" name="genre" id="story-genre">
+					  	</div>
+					  	<div>
+						    <label>Description</label>
+						    <textarea name="description" id="story-description"></textarea>
+					  	</div>
+					  	<div>
+						    <label>Tags</label>
+						    <textarea name="tags" id="story-tags"></textarea>
+					  	</div>
+					  	<div>
+						    <label>Public</label>
+						    <input type="checkbox" name="is_public" id="is-public">
+					  	</div>
+					</form>
+					
+					<div class="buttons">
+						<button class="btn" id="add-text">Add Text<span class="button-icon big text-icon"></span></button>
+						<button class="btn" id="add-image">Add Image<span class="button-icon big image-icon"></span></button>
+					</div>
+				</div>
+						
+						
+			</div>
+		</div>
+	</div>
+</div>
+{% endspaceless %}
+ 
+{% include "medialibrary/image_library.html" %}
+
+</div>
+{% endblock %}
+
+{% block extra_javascript %}
+	<script type="text/javascript">
+	window.NEED_ADD_BUTTONS = true;
+	</script>
+{% endblock %}
+
+{% block extra_javascript_libraries %}
+	<script type="text/javascript" src="/static/js/backbone-min.js"></script>
+{% endblock %}
+

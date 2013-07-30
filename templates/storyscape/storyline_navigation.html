@@ -1,19 +1,23 @@
-
-<div id='storyline'>
-	<!--<div id='storyline-bar'> --> 
-    <div id='story-nav-wrapper'>
-      <div id='story-nav-controls'>
-      <!--<div id='story-prev-page'>-</div>-->
-      <button id='story-prev-page' type='button'>Prev</button>
-      <div id='story-current-page-wrapper'><span style="vertical-align:top">Page: </span>
-        <textarea id='story-current-page'></textarea>
-        <span id='story-total-pages' style="vertical-align:top;"> /</span>
-      </div>
-      <!-- <div id='story-next-page'>+</div>-->
-      <button id='story-next-page' type='button'>Next</button>
-    </div>
-  
-  </div>
+<div id='storyline' class="story-page-controls">
+	<div id='story-nav-wrapper'>
+		<div id='story-nav-controls'>
+			<span class="pull-left">
+				<button class="btn" id="delete-page"><span class="remove-icon button-icon"></span><span>Delete Page</span></button>
+			</span>
+			
+			<button id='story-prev-page' class="btn btn-small">&laquo; Prev</button>
+			<span id='story-current-page-wrapper' class='story-current-page-wrapper'>
+				<span>Page: </span>
+				<input type="text" id='story-current-page'></input> /
+				<span id='story-total-pages'></span>
+			</span>
+			<button id='story-next-page' class="btn btn-small">Next &raquo;</button>
+			
+			<span class="pull-right">
+				<button class="btn" id="add-page"><span class="newpage-icon button-icon"></span><span>New Page</span></button>
+			</span>
+			
+		</div>
+		
+	</div>
 </div>
-
-

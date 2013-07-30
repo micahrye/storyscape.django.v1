@@ -3,6 +3,10 @@ StoryScape = window.StoryScape || {};
 
 $(document).ready(function () {
 	switch (PAGE_NAME) {
+		case "CREATE_STORY":
+			StoryScape.initStoryCreation();
+			StoryScape.initImageLibrary();
+			break;
 		case "IMAGE_LIBRARY":
 			StoryScape.initImageLibrary();
 			break;
@@ -10,6 +14,60 @@ $(document).ready(function () {
 			break;
 	}
 });
+
+/******************** Pagination Helper Functions ****************************************/
+
+StoryScape.loadPaginatedContent = function(url, pageNumber, callback, data) {
+	$("#pagination_content").addClass("hidden");
+	$("#pagination_loader").removeClass("hidden");
+	
+	data = data || {};
+	data['PAGE_NUMBER'] = pageNumber;
+	data['NEED_ADD_BUTTONS'] = window.NEED_ADD_BUTTONS || false;
+	
+	$.ajax({
+		type: "GET",
+		url: url,
+		data: data,
+		success: function(result) {
+			var data = JSON.parse(result);
+			
+			$("#pagination_loader").addClass("hidden");
+			
+			$("#pagination_content").html(data.content);
+			$("#pagination_content").removeClass("hidden");
+			
+			StoryScape.NUMBER_OF_PAGES = data.pages;
+			StoryScape.CURRENT_PAGE = data.current_page;
+			
+			callback();
+		}
+	});
+	
+}
+
+StoryScape.initializePaginator = function(){
+	StoryScape.NUMBER_OF_PAGES = StoryScape.NUMBER_OF_PAGES || 0;
+	
+    var pconfig = {
+            count: StoryScape.NUMBER_OF_PAGES,
+            start: StoryScape.CURRENT_PAGE,
+            display: 10,
+            border: false,
+            images: false,
+            mouse: 'press',
+            onChange: function(pageNumber){
+            	StoryScape.CURRENT_PAGE = pageNumber;
+            	StoryScape.reloadPaginatedContent();
+            }
+          };
+
+	$("#jpaginate").paginate(pconfig).click();
+};  
+
+
+/******************** Image Library ****************************************/
+
 
 StoryScape.imageUpload = function(dataString) {
 	var data = JSON.parse(dataString);
@@ -80,6 +138,20 @@ StoryScape.initImageLibrary = function() {
 		StoryScape.ALL_IMAGES = $(this).attr("id") == "all-images-nav";
 		StoryScape.reloadPaginatedContent();
 	})
+	
+	var onSearchChange = function() {
+		if ($(this).val()) {
+			$("#search-form-cancel").css("display","inline-block");
+		} else {
+			$("#search-form-cancel").css("display","none");
+		}
+	}
+	$("#search-field").keyup(onSearchChange).change(onSearchChange);
+	$("#search-form-cancel").click(function() {
+		$("#search-field").val("").keyup();
+		StoryScape.reloadPaginatedContent();
+	})
+
 }
 
 StoryScape.initializeMediaLibraryContent = function() {
@@ -87,7 +159,6 @@ StoryScape.initializeMediaLibraryContent = function() {
 		e.preventDefault();
 		var $this = $(this);
 		var object_id = $this.parents('.thumbnail-container').data("mediaobject-id");
-		console.log(object_id)
 		$.ajax({
 			type: "POST",
 			url: '/medialibrary/toggle_favorite_mo/',
@@ -109,7 +180,7 @@ StoryScape.initializeMediaLibraryContent = function() {
 	});
 	
 	$(".tag-link").click(function() {
-		$("#search-field").val($(this).html());
+		$("#search-field").val($(this).html()).trigger('change');
 		StoryScape.reloadPaginatedContent();
 	})
 	
@@ -123,61 +194,147 @@ StoryScape.initializeMediaLibraryContent = function() {
     		}
     	}
     });
+	
+	if (StoryScape.pageSpecificMediaInitialize) {
+		StoryScape.pageSpecificMediaInitialize();
+	}
+	
 }
 
-StoryScape.loadPaginatedContent = function(url, pageNumber, callback, data) {
-	$("#pagination_content").addClass("hidden");
-	$("#pagination_loader").removeClass("hidden");
+
+
+
+/******************** Story Creator ****************************************/
+
+var MediaObject = Backbone.Model.extend({
+
+});
+
+var MediaObjectSet = Backbone.Collection.extend({
+	  model: MediaObject
+});
+
+var Page = Backbone.Model.extend({
+
+	constructor: function() {
+		this.objects = new MediaObjectSet();
+	    Backbone.Model.apply(this, arguments);
+	},
+
+});
+
+var PageSet = Backbone.Collection.extend({
+	  model: Page
+});
+
+var Story = Backbone.Model.extend({
+
+	initialize: function() {
+	    this.bind("change-num-pages", function() {
+	    	$("#story-total-pages").html(this.getNumPages());
+	    });
+		
+		this.bind("change-current-page", function() {
+			$("#story-current-page").val(this.getIndex()+1);
+	    });
+
+		this.pages = new PageSet();
+		this.insertNewPage();
+	},
 	
-	data = data || {};
-	data['PAGE_NUMBER'] = pageNumber;
+	getIndex: function() {
+		return this.currentIndex;
+	},
 	
-	$.ajax({
-		type: "GET",
-		url: url,
-		data: data,
-		success: function(result) {
-			var data = JSON.parse(result);
-			
-			$("#pagination_loader").addClass("hidden");
-			
-			$("#pagination_content").html(data.content);
-			$("#pagination_content").removeClass("hidden");
-			
-			StoryScape.NUMBER_OF_PAGES = data.pages;
-			StoryScape.CURRENT_PAGE = data.current_page;
-			
-			callback();
+	getCurrentPage: function() {
+		return this.pages.at(this.currentIndex);
+	},
+	
+	changePage: function(index) {
+		index = _.max([index, 0]);
+		index = _.min([index, this.pages.length - 1]);
+		this.oldIndex = this.currentIndex;
+		this.currentIndex = index;
+		this.trigger("change-current-page");
+		return this.currentIndex;
+	},
+	
+	getNumPages: function() {
+		return this.pages.length;
+	},
+
+	insertNewPage: function() {
+		this.pages.add(new Page(), {at: this.getIndex() + 1});
+		this.trigger("change-num-pages");
+		if (this.pages.length == 1) {
+			this.currentIndex = 0;
+			this.trigger("change-current-page");
 		}
+	},
+
+	removePage: function() {
+		this.pages.remove(this.pages.at(this.currentIndex));
+		if (this.pages.length <= 0) {
+			this.insertNewPage();
+		}
+		this.trigger("change-num-pages");
+		this.changePage(this.getIndex());
+	},
+
+});
+
+StoryScape.initStoryCreation = function() {
+	StoryScape.currentStory = new Story();
+	
+	$('#add-image').click(function(e){
+		e.preventDefault();
+		
+		var top = $('#all-images-nav').offset().top - $('header').height() - 20;
+		$('html,body').animate({scrollTop: top}, 300);
 	});
 	
+	StoryScape.initStoryNavigation();
+	
+	$("#delete-page").click(function() {
+		StoryScape.currentStory.removePage();
+	});
+	$("#add-page").click(function() {
+		StoryScape.currentStory.insertNewPage();
+	});
+
+	/**
+	 * Function called at the end of the Media Library Page Initialization
+	 */
+	StoryScape.pageSpecificMediaInitialize = function() {
+		$(".thumbnail-frame").hover(function() {
+			$(this).find('.add-button').css("display","block");
+		}, function() {
+			$(this).find('.media-overlay').css("display","none");
+		});
+		$('.add-button').click(function() {
+			$(this).parent().find('.been-added').css("display","block");
+			$(this).css("display","none");
+		});
+	};
 }
 
-StoryScape.initializePaginator = function(){
-	StoryScape.NUMBER_OF_PAGES = StoryScape.NUMBER_OF_PAGES || 0;
-	
-    var pconfig = {
-            count: StoryScape.NUMBER_OF_PAGES,
-            start: StoryScape.CURRENT_PAGE,
-            display: 10,
-            border: false,
-            images: false,
-            mouse: 'press',
-            onChange: function(pageNumber){
-            	StoryScape.CURRENT_PAGE = pageNumber;
-            	StoryScape.reloadPaginatedContent();
-            }
-          };
-
-	$("#jpaginate").paginate(pconfig).click();
-};  
-
-
-
-
-
-
-
+StoryScape.initStoryNavigation = function() {
+	$("#story-prev-page").click(function() {
+		StoryScape.currentStory.changePage(StoryScape.currentStory.getIndex() - 1);
+	})
+	$("#story-next-page").click(function() {
+		StoryScape.currentStory.changePage(StoryScape.currentStory.getIndex() + 1);
+	})
+	var setStoryPage = function() {
+	}
+	$("#story-current-page").change(function() {
+		StoryScape.currentStory.changePage($(this).val());
+	}).keyup(function(event){
+	    if(event.keyCode == 13){
+			StoryScape.currentStory.changePage($(this).val());
+	    }
+	});
+}
 
 /******************** Django CSRF ****************************************/
 
