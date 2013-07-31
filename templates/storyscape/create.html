@@ -28,6 +28,8 @@
 							<li class="divider-vertical"></li>
 							<li class=""><a href="#" id="save-story" class="">Save</a></li>
 							<li class="divider-vertical"></li>
+							<li class=""><a href="#" id="save-story" class="">Publish</a></li>
+							<li class="divider-vertical"></li>
 						</ul>
 					</div>
 				</div>
@@ -50,15 +52,19 @@
 						    <label>Tags</label>
 						    <textarea name="tags" id="story-tags"></textarea>
 					  	</div>
-					  	<div>
-						    <label>Public</label>
-						    <input type="checkbox" name="is_public" id="is-public">
-					  	</div>
 					</form>
 					
 					<div class="buttons">
 						<button class="btn" id="add-text">Add Text<span class="button-icon big text-icon"></span></button>
 						<button class="btn" id="add-image">Add Image<span class="button-icon big image-icon"></span></button>
+					</div>
+				</div>
+				<div class="context-sensitive-menu image-menu hidden">
+					<div class="buttons">
+						<button class="btn" id="send-forward">Send Forward<span class="button-icon big forward-icon"></span></button>
+						<button class="btn" id="send-backward">Send Backward<span class="button-icon big backward-icon"></span></button>
+						<button class="btn" id="send-front">Send To Front<span class="button-icon big front-icon"></span></button>
+						<button class="btn" id="send-back">Send To Back<span class="button-icon big back-icon"></span></button>
 					</div>
 				</div>
 						
@@ -74,6 +80,10 @@
 </div>
 {% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" type='text/css' href="/static/ui-lightness/jquery-ui-1.10.3.custom.min.css">
+{% endblock %}
+
 {% block extra_javascript %}
 	<script type="text/javascript">
 	window.NEED_ADD_BUTTONS = true;
@@ -82,5 +92,7 @@
 
 {% block extra_javascript_libraries %}
 	<script type="text/javascript" src="/static/js/backbone-min.js"></script>
+	<script type="text/javascript" src="/static/js/jquery.actual.js"></script>
+	<script type="text/javascript" src="/static/ui-lightness/jquery-ui-1.10.3.custom.js"></script>
 {% endblock %}
 

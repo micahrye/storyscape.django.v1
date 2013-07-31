@@ -2,7 +2,7 @@
 	{% spaceless %}
 	<div id="thumbbox" class="thumbnail-group">
 		{% for mo in mediaobjects %}
-			<div class="thumbnail-container" data-mediaobject-id="{{ mo.id }}">
+			<div class="thumbnail-container" data-mediaobject-id="{{ mo.id }}" data-mediaobject-url='{{ MEDIA_URL }}{{ mo.url }}'>
 				<div class="thumbnail-frame">
 					{% if not need_add_buttons %}
 						<a href="{{ MEDIA_URL }}{{ mo.url }}" class="image-thumbnail-link" title='{{ mo.tags|join:" " }}'>

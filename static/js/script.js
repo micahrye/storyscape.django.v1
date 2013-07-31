@@ -17,6 +17,9 @@ $(document).ready(function () {
 
 /******************** Pagination Helper Functions ****************************************/
 
+/**
+ * Generic function to load a new page of library contents. Usually, pages call this through a simple wrapper called StoryScape.reloadPaginatedContent()
+ */
 StoryScape.loadPaginatedContent = function(url, pageNumber, callback, data) {
 	$("#pagination_content").addClass("hidden");
 	$("#pagination_loader").removeClass("hidden");
@@ -46,6 +49,9 @@ StoryScape.loadPaginatedContent = function(url, pageNumber, callback, data) {
 	
 }
 
+/**
+ * 
+ */
 StoryScape.initializePaginator = function(){
 	StoryScape.NUMBER_OF_PAGES = StoryScape.NUMBER_OF_PAGES || 0;
 	
@@ -68,7 +74,9 @@ StoryScape.initializePaginator = function(){
 
 /******************** Image Library ****************************************/
 
-
+/**
+ * 
+ */
 StoryScape.imageUpload = function(dataString) {
 	var data = JSON.parse(dataString);
 	var $form = $(data['form']);
@@ -104,6 +112,9 @@ StoryScape.imageUpload = function(dataString) {
 	$form.fancybox().click().unbind('click');
 }
 
+/**
+ * Called on init on any page that has a media library
+ */
 StoryScape.initImageLibrary = function() {
 	
 
@@ -154,6 +165,9 @@ StoryScape.initImageLibrary = function() {
 
 }
 
+/**
+ * Called after a page of Media Library content is loaded, which happens on page load or filtering or page changing
+ */
 StoryScape.initializeMediaLibraryContent = function() {
 	$(".toggle-favorite").click(function(e) {
 		e.preventDefault();
@@ -204,29 +218,177 @@ StoryScape.initializeMediaLibraryContent = function() {
 
 
 
-/******************** Story Creator ****************************************/
+/******************** Story Models (Requires Backbone.js) ****************************************/
 
+/**
+ * The class for a dumb model to hold the information of a media object.
+ */
 var MediaObject = Backbone.Model.extend({
 
 });
 
+/**
+ * The class for a collection of MediaObjects
+ */
 var MediaObjectSet = Backbone.Collection.extend({
 	  model: MediaObject
 });
 
+/**
+ * The class that stores the information for a given page, including a MediaObjectSet.
+ * 
+ * This handles all the logic of handling the actual media objects rendered within the #builder-pane
+ */
 var Page = Backbone.Model.extend({
 
 	constructor: function() {
-		this.objects = new MediaObjectSet();
 	    Backbone.Model.apply(this, arguments);
+	},
+	initialize: function() {
+		this.objects = new MediaObjectSet();
+		this.width = $('#builder-pane').innerWidth();
+		this.height = $('#builder-pane').innerHeight();
+		
+		$('body').mousedown(_.bind(function(e) {
+			if ($(e.target).hasClass("control-panel") || $(e.target).parents().hasClass("control-panel")) {
+				return;
+			}
+			this.trigger("deselect");
+		}, this));
+		$('#builder-pane').mousedown(function(e) {
+			e.preventDefault();
+		});
+		this.on("deselect", function() {
+			$('.media-object.selected').resizable( "destroy" );
+			$('.media-object').removeClass('selected');
+			
+			$('.context-sensitive-menu').addClass("hidden");
+			$('.story-menu').removeClass("hidden");
+		})
+	},
+	
+	addImage: function(objectId, objectURL) {
+		var $img = $('<img src="' + objectURL + '">');
+		var mediaObject = new MediaObject({width: $img.actual('width'),
+											height: $img.actual('height'),
+											objectURL: objectURL,
+											objectId: objectId,
+											x:(this.width - $img.actual('width')) / 2,
+											y:(this.height - $img.actual('height')) / 2});
+		this.objects.add(mediaObject);
+		
+		this.createElForMediaObject(mediaObject);
+	},
+	
+	createElForMediaObject: function(mediaObject) {
+		var $el = $('<div class="media-object"></div>');
+		$el.append($('<img src="' + mediaObject.get("objectURL") + '">'));
+		var $removeLink = $('<div class="remove-media-object"></div>');
+		$el.append($removeLink);
+		$el.data("mediaObject", mediaObject);
+		
+		$removeLink.click(_.bind(function() {
+			this.objects.remove(mediaObject);
+			$el.remove();
+		}, this));
+		
+		$el.css({'width': mediaObject.get("width"),
+			'height': mediaObject.get("height"),
+			'left': mediaObject.get("x"),
+			'top': mediaObject.get("y")});
+		
+		$el.drags();
+		$el.mousedown(function(e) {
+			e.stopPropagation();
+			if ($(this).hasClass("selected")) {
+				return;
+			}
+			StoryScape.currentStory.getCurrentPage().trigger("deselect");
+			$(this).addClass('selected');
+			$(this).resizable({
+				containment: "#builder-pane",
+				minHeight:48,
+				minWidth:48,
+				stop: function( event, ui ) {
+					var $el = ui.element;
+					mediaObject.set('width', $el.innerWidth());
+					mediaObject.set('height', $el.innerHeight());
+				}
+			});
+			
+			$('.context-sensitive-menu').addClass("hidden");
+			$('.image-menu').removeClass("hidden");
+			$('.image-menu .btn').unbind('click');
+			$('.image-menu #send-forward').click(_.bind(function() {
+				StoryScape.currentStory.getCurrentPage().sendForward($(this));
+			}, this));
+			$('.image-menu #send-backward').click(_.bind(function() {
+				StoryScape.currentStory.getCurrentPage().sendBackward($(this));
+			}, this));
+			$('.image-menu #send-front').click(_.bind(function() {
+				StoryScape.currentStory.getCurrentPage().sendToFront($(this));
+			}, this));
+			$('.image-menu #send-back').click(_.bind(function() {
+				StoryScape.currentStory.getCurrentPage().sendToBack($(this));
+			}, this));
+		});
+		
+		$el.bind('stoppeddrag', function() {
+			mediaObject.set('x', $(this).css('left'));
+			mediaObject.set('y', $(this).css('top'));
+		});
+		
+		$('#builder-pane').append($el);
+		return $el;
+	},
+	
+	createAllElements: function() {
+		this.objects.forEach(_.bind(function(mediaObject) {
+			this.createElForMediaObject(mediaObject);
+		}, this));
+	},
+	
+	sendForward: function($el) {
+        $el.next().after($el);
+        var mediaObject = $el.data("mediaObject");
+        var index = this.objects.indexOf(mediaObject);
+        this.objects.remove(mediaObject);
+        this.objects.add(mediaObject, {at: index+1});
+	},
+	sendBackward: function($el) {
+		$el.prev().before($el);
+        var mediaObject = $el.data("mediaObject");
+        var index = this.objects.indexOf(mediaObject);
+        this.objects.remove(mediaObject);
+        this.objects.add(mediaObject, {at: index-1});
+	},
+	sendToFront: function($el) {
+		$('#builder-pane').append($el);
+        var mediaObject = $el.data("mediaObject");
+        this.objects.remove(mediaObject);
+        this.objects.push(mediaObject);
+	},
+	sendToBack: function($el) {
+		$('#builder-pane').prepend($el);
+        var mediaObject = $el.data("mediaObject");
+        this.objects.remove(mediaObject);
+        this.objects.unshift(mediaObject);
 	},
 
 });
 
+/**
+ * Class for a collection of Pages
+ */
 var PageSet = Backbone.Collection.extend({
 	  model: Page
 });
 
+/**
+ * This class is the Story. There should only be one of these instantiated at a time, pointed to by StoryScape.currentStory.
+ * 
+ * This is where all the logic is contained about all the story structure and page list, and which page is currently being shown.
+ */
 var Story = Backbone.Model.extend({
 
 	initialize: function() {
@@ -236,6 +398,8 @@ var Story = Backbone.Model.extend({
 		
 		this.bind("change-current-page", function() {
 			$("#story-current-page").val(this.getIndex()+1);
+			$('#builder-pane').empty();
+			this.getCurrentPage().createAllElements();
 	    });
 
 		this.pages = new PageSet();
@@ -253,6 +417,8 @@ var Story = Backbone.Model.extend({
 	changePage: function(index) {
 		index = _.max([index, 0]);
 		index = _.min([index, this.pages.length - 1]);
+		this.getCurrentPage().trigger("deselect");
+
 		this.oldIndex = this.currentIndex;
 		this.currentIndex = index;
 		this.trigger("change-current-page");
@@ -283,6 +449,11 @@ var Story = Backbone.Model.extend({
 
 });
 
+/******************** Story Creator ****************************************/
+
+/**
+ * Called on page load, before the media library is initiated
+ */
 StoryScape.initStoryCreation = function() {
 	StoryScape.currentStory = new Story();
 	
@@ -301,6 +472,8 @@ StoryScape.initStoryCreation = function() {
 	$("#add-page").click(function() {
 		StoryScape.currentStory.insertNewPage();
 	});
+	
+
 
 	/**
 	 * Function called at the end of the Media Library Page Initialization
@@ -314,10 +487,15 @@ StoryScape.initStoryCreation = function() {
 		$('.add-button').click(function() {
 			$(this).parent().find('.been-added').css("display","block");
 			$(this).css("display","none");
+			var $container = $(this).parents('.thumbnail-container');
+			StoryScape.currentStory.getCurrentPage().addImage($container.data('mediaobject-id'), $container.data('mediaobject-url'));
 		});
 	};
 }
 
+/**
+ * Called from an initialization function on a page, used to initialize the story navigation. Relies on there being a StoryScape.currentStory.
+ */
 StoryScape.initStoryNavigation = function() {
 	$("#story-prev-page").click(function() {
 		StoryScape.currentStory.changePage(StoryScape.currentStory.getIndex() - 1);
@@ -328,13 +506,67 @@ StoryScape.initStoryNavigation = function() {
 	var setStoryPage = function() {
 	}
 	$("#story-current-page").change(function() {
-		StoryScape.currentStory.changePage($(this).val());
-	}).keyup(function(event){
-	    if(event.keyCode == 13){
-			StoryScape.currentStory.changePage($(this).val());
-	    }
+		StoryScape.currentStory.changePage(parseInt($(this).val(), 10) - 1);
 	});
-}
+};
+
+/**
+ * Draggable plugin, modified to allow for remaining within the bounds of a specified area
+ */
+(function($) {
+    $.fn.drags = function(opt) {
+
+        opt = $.extend({handle:"",cursor:"move", area:$('#builder-pane')}, opt);
+
+        if(opt.handle === "") {
+            var $el = this;
+        } else {
+            var $el = this.find(opt.handle);
+        }
+
+        return $el.css('cursor', opt.cursor).on("mousedown", function(e) {
+        	if ($(e.target).hasClass('ui-resizable-handle') || $(e.target).hasClass('remove-media-object')) {
+        		return;
+        	}
+        	
+            if(opt.handle === "") {
+                var $drag = $(this).addClass('draggable');
+            } else {
+                var $drag = $(this).addClass('active-handle').parent().addClass('draggable');
+            }
+            var drg_h = $drag.outerHeight(),
+	            drg_w = $drag.outerWidth(),
+	    		pos_y = $drag.offset().top + drg_h - e.pageY,
+            	pos_x = $drag.offset().left + drg_w - e.pageX;
+
+            var onMouseMove = function(e) {
+                var drg_h = $drag.outerHeight(),
+	                drg_w = $drag.outerWidth(),
+	        		top = e.pageY + pos_y - drg_h,
+	        		left = e.pageX + pos_x - drg_w,
+	        		area_top = opt.area.offset().top + (opt.area.outerHeight() - opt.area.height()) / 2,
+	            	area_left = opt.area.offset().left + (opt.area.outerWidth() - opt.area.width()) / 2;
+	        	top = _.max([top,area_top]);
+	        	left = _.max([left,area_left]);
+	        	top = _.min([top, area_top + opt.area.height() - drg_h]);
+	        	left = _.min([left, area_left + opt.area.width() - drg_w]);
+	            $('.draggable').offset({
+	                top:top,
+	                left:left
+	            })
+	        };
+            $drag.parents().on("mousemove", onMouseMove);
+            $('body').on("mouseup", function() {
+            	$drag.parents().unbind("mousemove", onMouseMove);
+                $('.draggable').removeClass('draggable');
+                $drag.trigger('stoppeddrag');
+            });
+
+            e.preventDefault();
+        })
+
+    }
+})(jQuery);
 
 /******************** Django CSRF ****************************************/
 

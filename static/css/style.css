@@ -547,7 +547,33 @@ background-color:rgba(0,0,0,0)}
 	height: 440px;
 	border:1px solid #d4d4d4;
 	display:inline-block;
+	position:relative;
 }
+.media-object {
+	position:absolute;
+}
+.media-object.selected {
+	border:1px solid #444;
+	margin:-1px;
+}
+.media-object > img {
+	height:100%;
+	width:100%;
+}
+.remove-media-object {
+	position:absolute;
+	top:5px;
+	right:5px;
+	height:16px;
+	width:16px;
+	background-image:url("/static/img/removemedia.png");
+	cursor:pointer;
+	display:none;
+}
+.selected .remove-media-object {
+	display:inline-block;
+}
+
 .story-page-controls {
 	width: 704px;
 	text-align:center;
@@ -642,6 +668,18 @@ background-color:rgba(0,0,0,0)}
 }
 .image-icon {
 	background-image:url("/static/img/image.png");
+}
+.forward-icon {
+	background-image:url("/static/img/movefront.png");
+}
+.backward-icon {
+	background-image:url("/static/img/moveback.png");
+}
+.front-icon {
+	background-image:url("/static/img/movetofront.png");
+}
+.back-icon {
+	background-image:url("/static/img/movetoback.png");
 }
 .media-overlay {
 	display:none;
