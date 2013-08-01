@@ -717,6 +717,21 @@ background-color:rgba(0,0,0,0)}
 .back-icon {
 	background-image:url("/static/img/movetoback.png");
 }
+.new-icon {
+	background-image:url("/static/img/new.png");
+}
+.save-icon {
+	background-image:url("/static/img/save.png");
+}
+.open-icon {
+	background-image:url("/static/img/open.png");
+}
+.delete-icon {
+	background-image:url("/static/img/delete.png");
+}
+.publish-icon {
+	background-image:url("/static/img/publish.png");
+}
 .control-panel hr {
 	margin:0 0 10px;
 }
@@ -777,4 +792,20 @@ background-color:rgba(0,0,0,0)}
 }
 .success-icon {
 	background-image:url("/static/img/greencheck.png");
+}
+
+.header-with-nav h1 {
+	display:inline-block;
+	margin-top:0;
+}
+.header-with-nav .btn {
+	margin-right: 10px;
+}
+.button-divider {
+	width: 1px;
+	height: 36px;
+	background-color: #CCC;
+	margin: 0 10px 0 0;
+	display: inline-block;
+	vertical-align: middle;
 }

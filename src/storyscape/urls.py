@@ -6,13 +6,13 @@ admin.autodiscover()
 
 urlpatterns = patterns('storyscape.views',
 
-    url(r'^create/$', 'storyscape', name='storyscape'), 
-    (r'^storyinfo/$', 'storyscapeBookInfo'),
-    (r'^my_stories/$', 'personalStoryLib'),
-    url(r'^get_story/$', 'get_story', name='storyscape_get_story'),
-    #(r'^mobileupload/$', 'mobile_upload'),
-    #(r'^(?P<poll_id>\d+)/details/$', 'detail'),
+    url(r'^create/$', 'create_story', name='create_story'), 
+    url(r'^my_stories/$', 'get_user_stories', name='get_user_stories'),
     
+    url(r'^delete/$', 'delete_story', name='delete_story'), 
+    url(r'^save/$', 'save_story', name='save_story'), 
+    url(r'^load/$', 'load_story', name='load_story'), 
+    url(r'^publish/$', 'publish_story', name='publish_story'), 
     
     url(r'^preview/(?P<story_id>\d+)/$', 'story_preview'),
     url(r'^reader/$', 'reader_info', name="reader_info"),

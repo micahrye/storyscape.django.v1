@@ -248,10 +248,10 @@ var MediaObject = Backbone.Model.extend({
 		this.set("height",val);
 	},
 	getFontSize: function() {
-		return this.get("font-size");
+		return this.get("font_size");
 	},
 	setFontSize: function(val) {
-		this.set("font-size",val);
+		this.set("font_size",val);
 	},
 	getColor: function() {
 		return this.get("color");
@@ -260,22 +260,22 @@ var MediaObject = Backbone.Model.extend({
 		this.set("color",val);
 	},
 	getActionCode: function() {
-		return this.get("action-code");
+		return this.get("action_code");
 	},
 	setActionCode: function(val) {
-		this.set("action-code",val);
+		this.set("action_code",val);
 	},
 	getActionTriggerCode: function() {
-		return this.get("action-trigger-code");
+		return this.get("action_trigger_code");
 	},
 	setActionTriggerCode: function(val) {
-		this.set("action-trigger-code",val);
+		this.set("action_trigger_code",val);
 	},
 	getPageOnTouch: function() {
-		return this.get("page-on-touch");
+		return this.get("page_on_touch");
 	},
 	setPageOnTouch: function(val) {
-		this.set("page-on-touch",val);
+		this.set("page_on_touch",val);
 	},
 	getType: function() {
 		return this.get("type");
@@ -296,10 +296,10 @@ var MediaObject = Backbone.Model.extend({
 		this.set("url",val);
 	},
 	getObjectId: function() {
-		return this.get("object-id");
+		return this.get("object_id");
 	},
 	setObjectId: function(val) {
-		this.set("object-id",val);
+		this.set("object_id",val);
 	},
 });
 
@@ -345,6 +345,18 @@ var Page = Backbone.Model.extend({
 			$('.story-menu').removeClass("hidden");
 		})
 	},
+	
+	toJSON: function(){
+		  var json = this.attributes;
+		  var objectlist = [];
+		  for (var i = 0; i < this.objects.models.length; i++) {
+			  objectlist.push(this.objects.models[i].toJSON());
+		  }
+		  json['media_objects'] = objectlist;
+		  return json;
+
+	},
+
 	
 	addImage: function(objectId, objectURL) {
 		var $img = $('<img src="' + objectURL + '">');
@@ -428,8 +440,8 @@ var Page = Backbone.Model.extend({
 		});
 		
 		$el.bind('stoppeddrag', function() {
-			mediaObject.setX( $(this).css('left'));
-			mediaObject.setY( $(this).css('top'));
+			mediaObject.setX( $(this).position().left);
+			mediaObject.setY( $(this).position().top);
 		});
 		
 		$('#builder-pane').append($el);
@@ -559,6 +571,7 @@ var PageSet = Backbone.Collection.extend({
  */
 var Story = Backbone.Model.extend({
 
+	url: "/storyscape/save/",
 	initialize: function() {
 	    this.bind("change-num-pages", function() {
 	    	$("#story-total-pages").html(this.getNumPages());
@@ -577,6 +590,18 @@ var Story = Backbone.Model.extend({
 
 		this.pages = new PageSet();
 		this.insertNewPage();
+	},
+	
+	toJSON: function(){
+		  var json = _.clone(this.attributes);
+		  var pagelist = [];
+		  for (var i = 0; i < this.pages.models.length; i++) {
+			  pagelist.push(this.pages.models[i].toJSON());
+		  }
+		  json['pages-info'] = pagelist;
+		  
+		  return {'story': JSON.stringify(json)};
+
 	},
 	
 	getIndex: function() {
@@ -644,6 +669,12 @@ var Story = Backbone.Model.extend({
 	getTags: function() {
 		return this.get("tags");
 	},
+	setStoryId: function(value) {
+		this.set("story-id", value);
+	},
+	getStoryId: function() {
+		return this.get("story-id");
+	},
 
 });
 
@@ -695,7 +726,43 @@ StoryScape.initStoryCreation = function() {
 	$('#story-tags').change(function(e) {
 		StoryScape.currentStory.setTags($(this).val());
 	});
+	
+	$("#save-story").click(function() {
+		var data = StoryScape.currentStory.toJSON();
+		$.ajax("/storyscape/save/",
+			{
+				type: "POST",
+				data:data,
+				success:function(response) {
+					var responseData = JSON.parse(response);
+					StoryScape.currentStory.setStoryId(responseData['story_id']);
+				},
+		});
+	});
 
+	$("#new-story").click(function() {
+		StoryScape.currentStory = new Story();
+	});
+
+	$("#delete-story").click(function() {
+		$.ajax("/storyscape/delete/",
+			{
+				type: "POST",
+				data:{story_id: StoryScape.currentStory.getStoryId()},
+				success:function(response) {
+					StoryScape.currentStory = new Story();
+				},
+		});
+	});
+	$("#publish-story").click(function() {
+		$.ajax("/storyscape/publish/",
+			{
+				type: "POST",
+				data:{story_id: StoryScape.currentStory.getStoryId()},
+				success:function(response) {
+				},
+		});
+	});
 
 	/**
 	 * Function called at the end of the Media Library Page Initialization

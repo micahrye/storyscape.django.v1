@@ -12,7 +12,7 @@ def story_to_xml(story, save_path):
     file_name = save_path + title + '.xml'
     try:
         f = open(file_name, 'w')
-    except IOError: raise
+    except IOError as e: raise
 
     #If file w/ this name already exists, will be overwritten.
     f.write('<?xml version="1.0"?> \n')
@@ -42,30 +42,33 @@ def story_to_xml(story, save_path):
             font_color = pmo.font_color
             font_size = str(pmo.font_size)
             if mo_type == 'image':
+                m = pmo.media_object
                 url = pmo.download_media_url
                 start = url.rfind('/') + 1
                 url = url[start:]
-                f.write('<media_object type="' + mo_type 
-                        + '" url="' + url + '" xcoor="' + xcoor 
-                        + '" ycoor="' + ycoor + '" z_index="' + z_index
-                        + '" width="' + width + '" height="' + height
-                        + '" goto_page="'  + goto_page
-                        + '" anime_code="' + anime_code
-                        + '" animate_on="' + animate_on + '"></media_object>' + '\n')
+                output = '<media_object type="' + mo_type \
+                        + '" url="' + url + '" xcoor="' + xcoor  \
+                        + '" ycoor="' + ycoor + '" z_index="' + z_index  \
+                        + '" width="' + width + '" height="' + height  \
+                        + '" goto_page="'  + goto_page  \
+                        + '" anime_code="' + anime_code  \
+                        + '" animate_on="' + animate_on + '"></media_object>' + '\n'
+                f.write(output.encode('UTF-8'))
                 #NOTE: at some point may have associated text with image... 
             elif mo_type == 'text':
                 assoc_text = pmo.assoc_text
-                f.write('<media_object type="' + mo_type 
-                        + '" xcoor="' + xcoor + '" ycoor="' + ycoor
-                        + '" width="' + width + '" height="' + height
-                        + '" z_index="' + z_index
-                        + '" font_style="' + font_style
-                        + '" font_size="' + font_size
-                        + '" font_color="' + font_color
-                        + '" goto_page="'  + goto_page
-                        + '" anime_code="' + anime_code
-                        + '" animate_on="' + animate_on + '">'
-                        + assoc_text + '</media_object>' + '\n')
+                output = '<media_object type="' + mo_type  \
+                        + '" xcoor="' + xcoor + '" ycoor="' + ycoor  \
+                        + '" width="' + width + '" height="' + height  \
+                        + '" z_index="' + z_index  \
+                        + '" font_style="' + font_style  \
+                        + '" font_size="' + font_size  \
+                        + '" font_color="' + font_color  \
+                        + '" goto_page="'  + goto_page  \
+                        + '" anime_code="' + anime_code  \
+                        + '" animate_on="' + animate_on + '">'  \
+                        + assoc_text + '</media_object>' + '\n'
+                f.write(output.encode('UTF-8'))
             else:
                 pass
         f.write('        </page> \n')
@@ -105,11 +108,12 @@ def create_story_thumbnail(story, save_path):
     comp_info = ''
     for pmo in pmos:
         #NOTE: can have attribute error if no download_media_url defined. 
+        file = save_path + os.path.split(pmo.download_media_url)[1] 
         comp_info += file+' '+ ' -geometry +'+str(pmo.xcoor)+'+'+str(pmo.ycoor)+' -composite '
         # should include some error checking someday 
 
     cmd1 = 'convert -size 1280x800 xc:white ' + comp_info + save_path + 'thumbnail_icon.png'
-    _ = commands.getoutput( cmd1 )
+    result = commands.getoutput( cmd1 )
     
     # if all good need to resize this
 

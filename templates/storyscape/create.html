@@ -6,15 +6,21 @@
 
 
 {% block content %}
-	<h1>StoryScape</h1>
-	<!-- 
-							<ul class="nav pull-left">
-								<li class=""><a href="#" id="new-story" class="">New</a></li>
-								<li class=""><a href="#" id="open-story" class="">Open</a></li>
-								<li class=""><a href="#" id="save-story" class="">Save</a></li>
-								<li class=""><a href="#" id="save-story" class="">Publish</a></li>
-							</ul>
-	 -->
+	<div class="header-with-nav">
+		{% spaceless %}
+			<h1>StoryScape</h1>
+			<div class="pull-right">
+				<button class="btn" id="delete-story"><span class="button-icon delete-icon"></span><span>Delete</span></button>
+				<span class="button-divider"></span>
+				<button class="btn" id="new-story"><span class="button-icon new-icon"></span><span>New</span></button>
+				<button class="btn" id="open-story"><span class="button-icon open-icon"></span><span>Open</span></button>
+				<span class="button-divider"></span>
+				<button class="btn" id="save-story"><span class="button-icon save-icon"></span><span>Save</span></button>
+				<button class="btn" id="publish-story"><span class="button-icon publish-icon"></span><span>Publish</span></button>
+			</div>
+		{% endspaceless %}
+	</div>
+	
 	<div id='storyscape-container'>
 	 
 		{% spaceless %}
