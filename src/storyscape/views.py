@@ -2,6 +2,7 @@ import commands
 import os
 import random
 import logging 
+from collections import OrderedDict
 
 from django.http import HttpResponse
 from django.template import RequestContext
@@ -30,6 +31,25 @@ from medialibrary.models import MediaLibrary, MediaObject
 logger = logging.getLogger(__name__)
 NUM_ITEMS_PER_PAGE = 40
 NUM_TAGS_PER_PAGE = 20
+
+ACTION_TRIGGER_CODES = OrderedDict([('Touch', 300),
+                        ('Sound', 301),
+                       ])
+
+ACTION_CODES = OrderedDict([('Fade Out',105),
+                ('Toggle Fade',113),
+                ('Expand',102),
+                ('Shrink',103),
+                ('Expand-Shrink',104),
+                ('Horizontal Shake',114),
+                ('Vertical Shake',115),
+                ('Jump',107),
+                ('Spin',112),
+                ('Drag',110),
+                ('Rubberband',111),
+                ('Slide Left',116),
+                ('Slide Right',101),
+                ]);
 
 def addPageMediaObjects(page, json_mediaobjects):
     for obj in json_mediaobjects:
@@ -446,7 +466,9 @@ def storyscape(request):
                  'storyscape/create.html',
                  {'user': request.user, 
                   "media_objects": media_objects,
-                  "stories":stories},
+                  "stories":stories,
+                  'action_codes':ACTION_CODES,
+                  'action_trigger_codes':ACTION_TRIGGER_CODES},
                  context_instance=RequestContext(request))
 
 

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load json_filters %}
 
 {% block title %}StoryScape{% endblock %}
 {% block pagename %}CREATE_STORY{% endblock %}
@@ -6,7 +7,14 @@
 
 {% block content %}
 <h1>StoryScape</h1>
-
+<!-- 
+						<ul class="nav pull-left">
+							<li class=""><a href="#" id="new-story" class="">New</a></li>
+							<li class=""><a href="#" id="open-story" class="">Open</a></li>
+							<li class=""><a href="#" id="save-story" class="">Save</a></li>
+							<li class=""><a href="#" id="save-story" class="">Publish</a></li>
+						</ul>
+ -->
 <div id='storyscape-container'>
  
  {% spaceless %}
@@ -19,22 +27,13 @@
 		</div>
 		<div class="builder-container right">
 			<div id='control-panel' class='control-panel'>
-				<div class="navbar">
-					<div class="navbar-inner builder-topnav">
-						<ul class="nav pull-left">
-							<li class=""><a href="#" id="new-story" class="">New</a></li>
-							<li class="divider-vertical"></li>
-							<li class=""><a href="#" id="open-story" class="">Open</a></li>
-							<li class="divider-vertical"></li>
-							<li class=""><a href="#" id="save-story" class="">Save</a></li>
-							<li class="divider-vertical"></li>
-							<li class=""><a href="#" id="save-story" class="">Publish</a></li>
-							<li class="divider-vertical"></li>
-						</ul>
-					</div>
-				</div>
-						
 				<div class="context-sensitive-menu story-menu">
+					<div class="navbar">
+						<div class="navbar-inner builder-topnav">
+							<h4>Story Settings</h4>
+						</div>
+					</div>
+						
 					<form id='create-story-form' class='story-toolbar-item' >
 					  	<div>
 					    	<label>Title</label>
@@ -60,11 +59,38 @@
 					</div>
 				</div>
 				<div class="context-sensitive-menu image-menu hidden">
+					<div class="navbar">
+						<div class="navbar-inner builder-topnav">
+							<h4>Image Settings</h4>
+						</div>
+					</div>
 					<div class="buttons">
-						<button class="btn" id="send-forward">Send Forward<span class="button-icon big forward-icon"></span></button>
-						<button class="btn" id="send-backward">Send Backward<span class="button-icon big backward-icon"></span></button>
-						<button class="btn" id="send-front">Send To Front<span class="button-icon big front-icon"></span></button>
-						<button class="btn" id="send-back">Send To Back<span class="button-icon big back-icon"></span></button>
+						<button class="btn" id="send-forward">Forward<span class="button-icon big forward-icon"></span></button>
+						<button class="btn" id="send-backward">Backward<span class="button-icon big backward-icon"></span></button>
+						<button class="btn" id="send-front">To Front<span class="button-icon big front-icon"></span></button>
+						<button class="btn" id="send-back">To Back<span class="button-icon big back-icon"></span></button>
+					</div>
+					<hr>
+					<div class="animation-section">
+						<select name="animation" id="animation-select">
+							<option value='0'>No Animation</option>
+							{% for name, value in action_codes.items %}
+								<option value='{{ value }}'>{{ name }}</option>
+							{% endfor %}
+						</select>
+						on
+						<select class="short" name="animation" id="animation-trigger-select">
+							{% for name, value in action_trigger_codes.items %}
+								<option value='{{ value }}'>{{ name }}</option>
+							{% endfor %}
+						</select>
+					</div>
+					<button class="btn preview-button" id="preview-animation-button">Preview</button>
+					<hr>
+					<div class="animation-section">
+						Go to page
+						<select class="short"></select>
+						on touch
 					</div>
 				</div>
 						
@@ -87,6 +113,8 @@
 {% block extra_javascript %}
 	<script type="text/javascript">
 	window.NEED_ADD_BUTTONS = true;
+	window.ACTION_CODES = {{ action_codes|jsonify|safe }};
+	window.ACTION_TRIGGER_CODES = {{ action_trigger_codes|jsonify|safe }};
 	</script>
 {% endblock %}
 

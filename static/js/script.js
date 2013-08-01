@@ -255,11 +255,14 @@ var Page = Backbone.Model.extend({
 			}
 			this.trigger("deselect");
 		}, this));
+		
 		$('#builder-pane').mousedown(function(e) {
 			e.preventDefault();
 		});
+		
 		this.on("deselect", function() {
 			$('.media-object.selected').resizable( "destroy" );
+			$('.media-object.selected textarea').blur();
 			$('.media-object').removeClass('selected');
 			
 			$('.context-sensitive-menu').addClass("hidden");
@@ -271,6 +274,7 @@ var Page = Backbone.Model.extend({
 		var $img = $('<img src="' + objectURL + '">');
 		var mediaObject = new MediaObject({width: $img.actual('width'),
 											height: $img.actual('height'),
+											type: "image",
 											objectURL: objectURL,
 											objectId: objectId,
 											x:(this.width - $img.actual('width')) / 2,
@@ -280,9 +284,44 @@ var Page = Backbone.Model.extend({
 		this.createElForMediaObject(mediaObject);
 	},
 	
+	addText: function() {
+		var width = 200,
+			height = 100;
+		var mediaObject = new MediaObject({width: width,
+											height: height,
+											type: "text",
+											text: "Add Your Text Here",
+											fontSize: 18,
+											fontColor: "#000",
+											fontStyle: 'normal',
+											x:(this.width - width) / 2,
+											y:(this.height - height) / 2});
+		this.objects.add(mediaObject);
+		
+		this.createElForMediaObject(mediaObject);
+	},
+	
 	createElForMediaObject: function(mediaObject) {
 		var $el = $('<div class="media-object"></div>');
-		$el.append($('<img src="' + mediaObject.get("objectURL") + '">'));
+		
+		if (mediaObject.get("type") == "text") {
+			var $textArea = $('<textarea>' + mediaObject.get("text") + '</textarea>');
+			$el.append($textArea);
+			$el.css({
+				'font-size': mediaObject.get("fontSize"),
+				'color': mediaObject.get("fontColor"),
+				});
+			$textArea.change(function(e) {
+				mediaObject.set("text", $(this).val());
+			});
+			$textArea.click(function(e) {
+				e.stopPropagation();
+			})
+		} else {
+			$el.append($('<img src="' + mediaObject.get("objectURL") + '">'));
+		}
+		
+		
 		var $removeLink = $('<div class="remove-media-object"></div>');
 		$el.append($removeLink);
 		$el.data("mediaObject", mediaObject);
@@ -303,34 +342,7 @@ var Page = Backbone.Model.extend({
 			if ($(this).hasClass("selected")) {
 				return;
 			}
-			StoryScape.currentStory.getCurrentPage().trigger("deselect");
-			$(this).addClass('selected');
-			$(this).resizable({
-				containment: "#builder-pane",
-				minHeight:48,
-				minWidth:48,
-				stop: function( event, ui ) {
-					var $el = ui.element;
-					mediaObject.set('width', $el.innerWidth());
-					mediaObject.set('height', $el.innerHeight());
-				}
-			});
-			
-			$('.context-sensitive-menu').addClass("hidden");
-			$('.image-menu').removeClass("hidden");
-			$('.image-menu .btn').unbind('click');
-			$('.image-menu #send-forward').click(_.bind(function() {
-				StoryScape.currentStory.getCurrentPage().sendForward($(this));
-			}, this));
-			$('.image-menu #send-backward').click(_.bind(function() {
-				StoryScape.currentStory.getCurrentPage().sendBackward($(this));
-			}, this));
-			$('.image-menu #send-front').click(_.bind(function() {
-				StoryScape.currentStory.getCurrentPage().sendToFront($(this));
-			}, this));
-			$('.image-menu #send-back').click(_.bind(function() {
-				StoryScape.currentStory.getCurrentPage().sendToBack($(this));
-			}, this));
+			StoryScape.currentStory.getCurrentPage().selectElement($(this));
 		});
 		
 		$el.bind('stoppeddrag', function() {
@@ -340,6 +352,55 @@ var Page = Backbone.Model.extend({
 		
 		$('#builder-pane').append($el);
 		return $el;
+	},
+	
+	selectElement: function($el) {
+		var mediaObject = $el.data("mediaObject");
+		
+		StoryScape.currentStory.getCurrentPage().trigger("deselect");
+		$el.addClass('selected');
+		$el.resizable({
+			containment: "#builder-pane",
+			minHeight:48,
+			minWidth:48,
+			stop: function( event, ui ) {
+				var $el = ui.element;
+				mediaObject.set('width', $el.innerWidth());
+				mediaObject.set('height', $el.innerHeight());
+			},
+			zIndex:0
+		});
+		
+		$('.context-sensitive-menu').addClass("hidden");
+		$('.image-menu').removeClass("hidden");
+		$('.image-menu .btn').unbind('click');
+		$('.image-menu select').unbind('change');
+		
+		$('.image-menu #send-forward').click(function() {
+			StoryScape.currentStory.getCurrentPage().sendForward($el);
+		});
+		$('.image-menu #send-backward').click(function() {
+			StoryScape.currentStory.getCurrentPage().sendBackward($el);
+		});
+		$('.image-menu #send-front').click(function() {
+			StoryScape.currentStory.getCurrentPage().sendToFront($el);
+		});
+		$('.image-menu #send-back').click(function() {
+			StoryScape.currentStory.getCurrentPage().sendToBack($el);
+		});
+		
+		$('.image-menu #animation-select').val(mediaObject.get("action_code") || 0);
+		$('.image-menu #animation-select').change(function() {
+			$el.data("mediaObject").set("action_code", $(this).val());
+		});
+		$('.image-menu #animation-trigger-select').val(mediaObject.get("action_trigger_code") || ACTION_TRIGGER_CODES['Touch']);
+		$('.image-menu #animation-trigger-select').change(function() {
+			$el.data("mediaObject").set("action_trigger_code", $(this).val());
+		});
+		$('.image-menu #preview-animation-button').click(function() {
+			var mediaObject = $el.data("mediaObject");
+			StoryScape.animateElement($el, mediaObject.get("action_code"));
+		});
 	},
 	
 	createAllElements: function() {
@@ -473,6 +534,11 @@ StoryScape.initStoryCreation = function() {
 		StoryScape.currentStory.insertNewPage();
 	});
 	
+	$('#add-text').click(function(e){
+		e.preventDefault();
+		
+		StoryScape.currentStory.getCurrentPage().addText();
+	});
 
 
 	/**
@@ -508,6 +574,47 @@ StoryScape.initStoryNavigation = function() {
 	$("#story-current-page").change(function() {
 		StoryScape.currentStory.changePage(parseInt($(this).val(), 10) - 1);
 	});
+};
+
+/**
+ * Helper function to animate an element based on an action code
+ */
+StoryScape.animateElement = function($el,code) {
+
+	var animationTime = 1000;
+	console.log($el, code);
+	
+	switch( parseInt(code, 10) ) {
+		case ACTION_CODES["Fade Out"]:
+			$el.animate({opacity: 0.25}, animationTime).delay(600).animate({opacity: 1},100); 
+			break; 
+		case ACTION_CODES["Toggle Fade"]:
+			break; 
+		case ACTION_CODES["Expand"]:
+			break; 
+		case ACTION_CODES["Shrink"]:
+			break; 
+		case ACTION_CODES["Expand-Shrink"]:
+			break; 
+		case ACTION_CODES["Horizontal Shake"]:
+			break; 
+		case ACTION_CODES["Vertical Shake"]:
+			break; 
+		case ACTION_CODES["Jump"]:
+			break; 
+		case ACTION_CODES["Spin"]:
+			break; 
+		case ACTION_CODES["Drag"]:
+			break; 
+		case ACTION_CODES["Rubberband"]:
+			break; 
+		case ACTION_CODES["Slide Left"]:
+			break; 
+		case ACTION_CODES["Slide Right"]:
+			break;
+		default:
+	}
+
 };
 
 /**
@@ -554,6 +661,7 @@ StoryScape.initStoryNavigation = function() {
 	                top:top,
 	                left:left
 	            })
+	            e.preventDefault();
 	        };
             $drag.parents().on("mousemove", onMouseMove);
             $('body').on("mouseup", function() {
@@ -562,7 +670,9 @@ StoryScape.initStoryNavigation = function() {
                 $drag.trigger('stoppeddrag');
             });
 
-            e.preventDefault();
+            if (! $(e.target).is('textarea') ) {
+                e.preventDefault();
+            }
         })
 
     }

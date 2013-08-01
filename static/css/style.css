@@ -281,6 +281,9 @@ form h2.success_message {
 	background-position:-4px 1px;
 }
 
+.loading-message {
+	text-align:center;
+}
 #floatingCirclesG{
 position:relative;
 width:50px;
@@ -560,6 +563,17 @@ background-color:rgba(0,0,0,0)}
 	height:100%;
 	width:100%;
 }
+.media-object > textarea {
+	background:none;
+	border:none;
+	padding:none;
+	margin:none;
+	height:100%;
+	width:100%;
+	overflow:hidden;
+	resize:none;
+	box-shadow:none;
+}
 .remove-media-object {
 	position:absolute;
 	top:5px;
@@ -629,13 +643,33 @@ background-color:rgba(0,0,0,0)}
 	vertical-align:baseline;
 	margin-bottom:10px;
 }
+.control-panel select {
+	font-size:14px;
+	font-weight:300;
+	width:150px;
+	height: 26px;
+	vertical-align: baseline;
+}
+.control-panel select.short {
+	width:75px;
+}
+.control-panel .navbar {
+	margin:0 -10px 5px;
+}
+.control-panel .navbar-inner {
+	padding: 0 20px;
+}
+.control-panel .navbar-inner h4 {
+	margin:0;
+	line-height:52px;
+}
 .control-panel .buttons {
 	text-align:center;
 	padding:10px 0px 0;
 }
 .control-panel .buttons .btn {
 	width:120px;
-	height:120px;
+	height:100px;
 	margin:0 5px 10px;
 	font-size:16px;
 }
@@ -681,6 +715,22 @@ background-color:rgba(0,0,0,0)}
 .back-icon {
 	background-image:url("/static/img/movetoback.png");
 }
+.control-panel hr {
+	margin:0 0 10px;
+}
+.control-panel .btn.preview-button {
+	width:250px;
+	font-size:16px;
+	line-height:20px;
+	padding:5px;
+	display:block;
+	margin:0 auto 10px;
+}
+.control-panel .animation-section {
+	text-align:center;
+}
+
+
 .media-overlay {
 	display:none;
 	position:absolute;
