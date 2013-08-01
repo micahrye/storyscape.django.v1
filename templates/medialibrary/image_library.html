@@ -9,9 +9,9 @@
 			{% if request.user.is_authenticated %}
 			<ul class="nav pull-right">
 				<li class="divider-vertical"></li>
-				<li class="active"><a href="#" id="all-images-nav" class="image-type-nav">All Images</a></li>
+				<li class="{% if not show_personal_library %}active{% endif %}"><a href="#" id="all-images-nav" class="image-type-nav">All Images</a></li>
 				<li class="divider-vertical"></li>
-				<li class=""><a href="#" id="favorite-images-nav" class="image-type-nav">Favorite Images</a></li>
+				<li class="{% if show_personal_library %}active{% endif %}"><a href="#" id="favorite-images-nav" class="image-type-nav">Favorite Images</a></li>
 				{% if request.user.is_authenticated %}
 					<li class="divider-vertical"></li>
 					<li class="divider-vertical spaced"></li>

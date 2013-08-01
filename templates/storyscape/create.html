@@ -6,108 +6,121 @@
 
 
 {% block content %}
-<h1>StoryScape</h1>
-<!-- 
-						<ul class="nav pull-left">
-							<li class=""><a href="#" id="new-story" class="">New</a></li>
-							<li class=""><a href="#" id="open-story" class="">Open</a></li>
-							<li class=""><a href="#" id="save-story" class="">Save</a></li>
-							<li class=""><a href="#" id="save-story" class="">Publish</a></li>
-						</ul>
- -->
-<div id='storyscape-container'>
- 
- {% spaceless %}
-<div> 
-	<div id='builder-pane-container' class="builder-pane-container"> 
-		<div class="builder-container left">
-			<div id="builder-pane" class="builder-pane">
-			</div>
-			{% include "storyscape/storyline_navigation.html" %} 
-		</div>
-		<div class="builder-container right">
-			<div id='control-panel' class='control-panel'>
-				<div class="context-sensitive-menu story-menu">
-					<div class="navbar">
-						<div class="navbar-inner builder-topnav">
-							<h4>Story Settings</h4>
+	<h1>StoryScape</h1>
+	<!-- 
+							<ul class="nav pull-left">
+								<li class=""><a href="#" id="new-story" class="">New</a></li>
+								<li class=""><a href="#" id="open-story" class="">Open</a></li>
+								<li class=""><a href="#" id="save-story" class="">Save</a></li>
+								<li class=""><a href="#" id="save-story" class="">Publish</a></li>
+							</ul>
+	 -->
+	<div id='storyscape-container'>
+	 
+		{% spaceless %}
+			<div> 
+				<div id='builder-pane-container' class="builder-pane-container"> 
+					<div class="builder-container left">
+						<div id="builder-pane" class="builder-pane">
+						</div>
+						{% include "storyscape/storyline_navigation.html" %} 
+					</div>
+					<div class="builder-container right">
+						<div id='control-panel' class='control-panel'>
+							<div class="context-sensitive-menu story-menu">
+								<div class="navbar">
+									<div class="navbar-inner builder-topnav">
+										<h4>Story Settings</h4>
+									</div>
+								</div>
+									
+								<form id='create-story-form' class='story-toolbar-item' >
+								  	<div>
+								    	<label>Title</label>
+								    	<input type="text" name="title" id="story-title">
+								  	</div>
+								  	<div>
+									    <label>Genre</label>
+									    <input type="text" name="genre" id="story-genre">
+								  	</div>
+								  	<div>
+									    <label>Description</label>
+									    <textarea name="description" id="story-description"></textarea>
+								  	</div>
+								  	<div>
+									    <label>Tags</label>
+									    <textarea name="tags" id="story-tags"></textarea>
+								  	</div>
+								</form>
+								<hr>
+								<div class="buttons">
+									<button class="btn" id="add-text">Add Text<span class="button-icon big text-icon"></span></button>
+									<button class="btn" id="add-image">Add Image<span class="button-icon big image-icon"></span></button>
+								</div>
+							</div>
+							<div class="context-sensitive-menu image-menu hidden">
+								<div class="navbar">
+									<div class="navbar-inner builder-topnav">
+										<h4 class="settings-title"></h4>
+									</div>
+								</div>
+								<div class="text-settings">
+									<h4>Font:</h4>
+									<select id="font-size" class="short">
+										{% with "12 16 18 22 24 28 32 36 42 48 52 58 64 72 96 124" as sizes %}
+											{% for size in sizes.split %}
+												<option value="{{ size }}">{{ size }}</option>
+											{% endfor %}
+										{% endwith %}
+									</select>
+									<input type="color" name="color" id="color-picker">
+									<hr>
+								</div>
+								<div class="buttons">
+									<button class="btn" id="send-forward">Forward<span class="button-icon big forward-icon"></span></button>
+									<button class="btn" id="send-backward">Backward<span class="button-icon big backward-icon"></span></button>
+									<button class="btn" id="send-front">To Front<span class="button-icon big front-icon"></span></button>
+									<button class="btn" id="send-back">To Back<span class="button-icon big back-icon"></span></button>
+								</div>
+								<hr>
+								<div class="animation-section">
+									<select name="animation" id="animation-select">
+										<option value='0'>No Animation</option>
+										{% for name, value in action_codes.items %}
+											<option value='{{ value }}'>{{ name }}</option>
+										{% endfor %}
+									</select>
+									on
+									<select class="short" name="animation" id="animation-trigger-select">
+										{% for name, value in action_trigger_codes.items %}
+											<option value='{{ value }}'>{{ name }}</option>
+										{% endfor %}
+									</select>
+								</div>
+								<button class="btn preview-button" id="preview-animation-button">Preview</button>
+								<hr>
+								<div class="animation-section">
+									Go to page
+									<select class="short" id="goto-on-touch-select"></select>
+									on touch
+								</div>
+							</div>
+									
+									
 						</div>
 					</div>
-						
-					<form id='create-story-form' class='story-toolbar-item' >
-					  	<div>
-					    	<label>Title</label>
-					    	<input type="text" name="title" id="story-title">
-					  	</div>
-					  	<div>
-						    <label>Genre</label>
-						    <input type="text" name="genre" id="story-genre">
-					  	</div>
-					  	<div>
-						    <label>Description</label>
-						    <textarea name="description" id="story-description"></textarea>
-					  	</div>
-					  	<div>
-						    <label>Tags</label>
-						    <textarea name="tags" id="story-tags"></textarea>
-					  	</div>
-					</form>
-					
-					<div class="buttons">
-						<button class="btn" id="add-text">Add Text<span class="button-icon big text-icon"></span></button>
-						<button class="btn" id="add-image">Add Image<span class="button-icon big image-icon"></span></button>
-					</div>
 				</div>
-				<div class="context-sensitive-menu image-menu hidden">
-					<div class="navbar">
-						<div class="navbar-inner builder-topnav">
-							<h4>Image Settings</h4>
-						</div>
-					</div>
-					<div class="buttons">
-						<button class="btn" id="send-forward">Forward<span class="button-icon big forward-icon"></span></button>
-						<button class="btn" id="send-backward">Backward<span class="button-icon big backward-icon"></span></button>
-						<button class="btn" id="send-front">To Front<span class="button-icon big front-icon"></span></button>
-						<button class="btn" id="send-back">To Back<span class="button-icon big back-icon"></span></button>
-					</div>
-					<hr>
-					<div class="animation-section">
-						<select name="animation" id="animation-select">
-							<option value='0'>No Animation</option>
-							{% for name, value in action_codes.items %}
-								<option value='{{ value }}'>{{ name }}</option>
-							{% endfor %}
-						</select>
-						on
-						<select class="short" name="animation" id="animation-trigger-select">
-							{% for name, value in action_trigger_codes.items %}
-								<option value='{{ value }}'>{{ name }}</option>
-							{% endfor %}
-						</select>
-					</div>
-					<button class="btn preview-button" id="preview-animation-button">Preview</button>
-					<hr>
-					<div class="animation-section">
-						Go to page
-						<select class="short"></select>
-						on touch
-					</div>
-				</div>
-						
-						
 			</div>
-		</div>
+		{% endspaceless %}
+		 
+		{% include "medialibrary/image_library.html" %}
+	
 	</div>
-</div>
-{% endspaceless %}
- 
-{% include "medialibrary/image_library.html" %}
-
-</div>
 {% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" type='text/css' href="/static/ui-lightness/jquery-ui-1.10.3.custom.min.css">
+	<link rel="stylesheet" type='text/css' href="/static/ui-lightness/jquery-ui-1.10.3.custom.min.css">
+	<link rel="stylesheet" type='text/css' href="/static/css/spectrum.css">
 {% endblock %}
 
 {% block extra_javascript %}
@@ -121,6 +134,7 @@
 {% block extra_javascript_libraries %}
 	<script type="text/javascript" src="/static/js/backbone-min.js"></script>
 	<script type="text/javascript" src="/static/js/jquery.actual.js"></script>
+	<script type="text/javascript" src="/static/js/spectrum.js"></script>
 	<script type="text/javascript" src="/static/ui-lightness/jquery-ui-1.10.3.custom.js"></script>
 {% endblock %}
 

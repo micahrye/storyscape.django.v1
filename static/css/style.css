@@ -551,6 +551,7 @@ background-color:rgba(0,0,0,0)}
 	border:1px solid #d4d4d4;
 	display:inline-block;
 	position:relative;
+	overflow:hidden;
 }
 .media-object {
 	position:absolute;
@@ -573,6 +574,7 @@ background-color:rgba(0,0,0,0)}
 	overflow:hidden;
 	resize:none;
 	box-shadow:none;
+	color:inherit;
 }
 .remove-media-object {
 	position:absolute;
@@ -729,7 +731,22 @@ background-color:rgba(0,0,0,0)}
 .control-panel .animation-section {
 	text-align:center;
 }
-
+.text-settings {
+	text-align:center;
+}
+.text-settings h4 {
+	display:inline-block;
+	margin-right:10px;
+	font-weight:300;
+	margin-top: 20px;
+	margin-bottom: 30px;
+}
+.text-settings select {
+	margin-right:20px;
+}
+.text-settings hr {
+	margin:0;
+}
 
 .media-overlay {
 	display:none;

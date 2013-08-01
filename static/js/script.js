@@ -132,8 +132,6 @@ StoryScape.initImageLibrary = function() {
 		var data = {'SEARCH_TERM': StoryScape.SEARCH_TERM, 'GET_ALL_IMAGES': StoryScape.ALL_IMAGES || false};
 		StoryScape.loadPaginatedContent("/medialibrary/get_media_objects", StoryScape.CURRENT_PAGE, StoryScape.initializeMediaLibraryContent, data);
 	}
-
-	StoryScape.reloadPaginatedContent();
 	
 	$("#search-form").submit(function(e) {
 		e.preventDefault();
@@ -149,6 +147,7 @@ StoryScape.initImageLibrary = function() {
 		StoryScape.ALL_IMAGES = $(this).attr("id") == "all-images-nav";
 		StoryScape.reloadPaginatedContent();
 	})
+	$(".active .image-type-nav").click();
 	
 	var onSearchChange = function() {
 		if ($(this).val()) {
@@ -224,7 +223,84 @@ StoryScape.initializeMediaLibraryContent = function() {
  * The class for a dumb model to hold the information of a media object.
  */
 var MediaObject = Backbone.Model.extend({
-
+	getX: function() {
+		return this.get("x");
+	},
+	setX: function(val) {
+		this.set("x",val);
+	},
+	getY: function() {
+		return this.get("y");
+	},
+	setY: function(val) {
+		this.set("y",val);
+	},
+	getWidth: function() {
+		return this.get("width");
+	},
+	setWidth: function(val) {
+		this.set("width",val);
+	},
+	getHeight: function() {
+		return this.get("height");
+	},
+	setHeight: function(val) {
+		this.set("height",val);
+	},
+	getFontSize: function() {
+		return this.get("font-size");
+	},
+	setFontSize: function(val) {
+		this.set("font-size",val);
+	},
+	getColor: function() {
+		return this.get("color");
+	},
+	setColor: function(val) {
+		this.set("color",val);
+	},
+	getActionCode: function() {
+		return this.get("action-code");
+	},
+	setActionCode: function(val) {
+		this.set("action-code",val);
+	},
+	getActionTriggerCode: function() {
+		return this.get("action-trigger-code");
+	},
+	setActionTriggerCode: function(val) {
+		this.set("action-trigger-code",val);
+	},
+	getPageOnTouch: function() {
+		return this.get("page-on-touch");
+	},
+	setPageOnTouch: function(val) {
+		this.set("page-on-touch",val);
+	},
+	getType: function() {
+		return this.get("type");
+	},
+	setType: function(val) {
+		this.set("type",val);
+	},
+	getText: function() {
+		return this.get("text");
+	},
+	setText: function(val) {
+		this.set("text",val);
+	},
+	getURL: function() {
+		return this.get("url");
+	},
+	setURL: function(val) {
+		this.set("url",val);
+	},
+	getObjectId: function() {
+		return this.get("object-id");
+	},
+	setObjectId: function(val) {
+		this.set("object-id",val);
+	},
 });
 
 /**
@@ -250,7 +326,7 @@ var Page = Backbone.Model.extend({
 		this.height = $('#builder-pane').innerHeight();
 		
 		$('body').mousedown(_.bind(function(e) {
-			if ($(e.target).hasClass("control-panel") || $(e.target).parents().hasClass("control-panel")) {
+			if ($(e.target).hasClass("control-panel") || $(e.target).parents().hasClass("control-panel") || $(e.target).parents().hasClass("sp-container")) {
 				return;
 			}
 			this.trigger("deselect");
@@ -272,13 +348,17 @@ var Page = Backbone.Model.extend({
 	
 	addImage: function(objectId, objectURL) {
 		var $img = $('<img src="' + objectURL + '">');
-		var mediaObject = new MediaObject({width: $img.actual('width'),
-											height: $img.actual('height'),
-											type: "image",
-											objectURL: objectURL,
-											objectId: objectId,
-											x:(this.width - $img.actual('width')) / 2,
-											y:(this.height - $img.actual('height')) / 2});
+		
+		var mediaObject = new MediaObject();
+		
+		mediaObject.setX((this.width - $img.actual('width')) / 2);
+		mediaObject.setY((this.height - $img.actual('height')) / 2);
+		mediaObject.setWidth($img.actual('width'));
+		mediaObject.setHeight($img.actual('height'));
+		mediaObject.setType("image");
+		mediaObject.setObjectId(objectId);
+		mediaObject.setURL(objectURL);
+
 		this.objects.add(mediaObject);
 		
 		this.createElForMediaObject(mediaObject);
@@ -287,15 +367,17 @@ var Page = Backbone.Model.extend({
 	addText: function() {
 		var width = 200,
 			height = 100;
-		var mediaObject = new MediaObject({width: width,
-											height: height,
-											type: "text",
-											text: "Add Your Text Here",
-											fontSize: 18,
-											fontColor: "#000",
-											fontStyle: 'normal',
-											x:(this.width - width) / 2,
-											y:(this.height - height) / 2});
+		var mediaObject = new MediaObject();
+		
+		mediaObject.setX((this.width - width) / 2);
+		mediaObject.setY((this.height - height) / 2);
+		mediaObject.setWidth(width);
+		mediaObject.setHeight(height);
+		mediaObject.setType("text");
+		mediaObject.setFontSize(18);
+		mediaObject.setColor("#000");
+		mediaObject.setText("Add Your Text Here");
+		
 		this.objects.add(mediaObject);
 		
 		this.createElForMediaObject(mediaObject);
@@ -304,21 +386,21 @@ var Page = Backbone.Model.extend({
 	createElForMediaObject: function(mediaObject) {
 		var $el = $('<div class="media-object"></div>');
 		
-		if (mediaObject.get("type") == "text") {
-			var $textArea = $('<textarea>' + mediaObject.get("text") + '</textarea>');
+		if (mediaObject.getType() == "text") {
+			var $textArea = $('<textarea>' + mediaObject.getText() + '</textarea>');
 			$el.append($textArea);
 			$el.css({
-				'font-size': mediaObject.get("fontSize"),
-				'color': mediaObject.get("fontColor"),
+				'font-size': mediaObject.getFontSize(),
+				'color': mediaObject.getColor(),
 				});
 			$textArea.change(function(e) {
-				mediaObject.set("text", $(this).val());
+				mediaObject.setText($(this).val());
 			});
 			$textArea.click(function(e) {
 				e.stopPropagation();
 			})
 		} else {
-			$el.append($('<img src="' + mediaObject.get("objectURL") + '">'));
+			$el.append($('<img src="' + mediaObject.getURL() + '">'));
 		}
 		
 		
@@ -331,10 +413,10 @@ var Page = Backbone.Model.extend({
 			$el.remove();
 		}, this));
 		
-		$el.css({'width': mediaObject.get("width"),
-			'height': mediaObject.get("height"),
-			'left': mediaObject.get("x"),
-			'top': mediaObject.get("y")});
+		$el.css({'width': mediaObject.getWidth(),
+			'height': mediaObject.getHeight(),
+			'left': mediaObject.getX(),
+			'top': mediaObject.getY()});
 		
 		$el.drags();
 		$el.mousedown(function(e) {
@@ -346,8 +428,8 @@ var Page = Backbone.Model.extend({
 		});
 		
 		$el.bind('stoppeddrag', function() {
-			mediaObject.set('x', $(this).css('left'));
-			mediaObject.set('y', $(this).css('top'));
+			mediaObject.setX( $(this).css('left'));
+			mediaObject.setY( $(this).css('top'));
 		});
 		
 		$('#builder-pane').append($el);
@@ -365,8 +447,8 @@ var Page = Backbone.Model.extend({
 			minWidth:48,
 			stop: function( event, ui ) {
 				var $el = ui.element;
-				mediaObject.set('width', $el.innerWidth());
-				mediaObject.set('height', $el.innerHeight());
+				mediaObject.setWidth( $el.innerWidth());
+				mediaObject.setHeight( $el.innerHeight());
 			},
 			zIndex:0
 		});
@@ -375,6 +457,27 @@ var Page = Backbone.Model.extend({
 		$('.image-menu').removeClass("hidden");
 		$('.image-menu .btn').unbind('click');
 		$('.image-menu select').unbind('change');
+		$('.image-menu #color-picker').unbind('change');
+		
+		if (mediaObject.getType() == "image") {
+			$('.image-menu .settings-title').html("Image Settings");
+			$('.image-menu .text-settings').css('display', 'none');
+		} else {
+			$('.image-menu .settings-title').html("Text Settings");
+			$('.image-menu .text-settings').css('display', 'block');
+			
+			$('.image-menu #font-size').val(mediaObject.getActionCode() || "18");
+			$('.image-menu #font-size').change(function() {
+				mediaObject.setFontSize( $(this).val());
+				$el.css("font-size", $(this).val()+"px");
+			});
+			
+			$('.image-menu #color-picker').val(mediaObject.getColor() || "#000000");
+			$('.image-menu #color-picker').change(function() {
+				mediaObject.setColor( $(this).val());
+				$el.css("color", $(this).val());
+			});
+		}
 		
 		$('.image-menu #send-forward').click(function() {
 			StoryScape.currentStory.getCurrentPage().sendForward($el);
@@ -389,17 +492,21 @@ var Page = Backbone.Model.extend({
 			StoryScape.currentStory.getCurrentPage().sendToBack($el);
 		});
 		
-		$('.image-menu #animation-select').val(mediaObject.get("action_code") || 0);
+		$('.image-menu #animation-select').val(mediaObject.getActionCode() || 0);
 		$('.image-menu #animation-select').change(function() {
-			$el.data("mediaObject").set("action_code", $(this).val());
+			mediaObject.setActionCode($(this).val());
 		});
-		$('.image-menu #animation-trigger-select').val(mediaObject.get("action_trigger_code") || ACTION_TRIGGER_CODES['Touch']);
+		$('.image-menu #animation-trigger-select').val(mediaObject.getActionTriggerCode() || ACTION_TRIGGER_CODES['Touch']);
 		$('.image-menu #animation-trigger-select').change(function() {
-			$el.data("mediaObject").set("action_trigger_code", $(this).val());
+			mediaObject.setActionTriggerCode($(this).val());
 		});
 		$('.image-menu #preview-animation-button').click(function() {
-			var mediaObject = $el.data("mediaObject");
-			StoryScape.animateElement($el, mediaObject.get("action_code"));
+			StoryScape.animateElement($el, mediaObject.getActionCode());
+		});
+		
+		$('.image-menu #goto-on-touch-select').val(mediaObject.getPageOnTouch() || '');
+		$('.image-menu #goto-on-touch-select').change(function() {
+			mediaObject.setPageOnTouch($(this).val());
 		});
 	},
 	
@@ -455,6 +562,11 @@ var Story = Backbone.Model.extend({
 	initialize: function() {
 	    this.bind("change-num-pages", function() {
 	    	$("#story-total-pages").html(this.getNumPages());
+	    	$("#goto-on-touch-select").empty();
+	    	$("#goto-on-touch-select").append("<option></option>");
+	    	for (var i = 1; i <= this.getNumPages(); i++) {
+		    	$("#goto-on-touch-select").append('<option value="' + i + '">' + i + '</option>');
+	    	}
 	    });
 		
 		this.bind("change-current-page", function() {
@@ -507,6 +619,31 @@ var Story = Backbone.Model.extend({
 		this.trigger("change-num-pages");
 		this.changePage(this.getIndex());
 	},
+	
+	setTitle: function(value) {
+		this.set("title", value);
+	},
+	getTitle: function() {
+		return this.get("title");
+	},
+	setGenre: function(value) {
+		this.set("genre", value);
+	},
+	getGenre: function() {
+		return this.get("genre");
+	},
+	setDescription: function(value) {
+		this.set("description", value);
+	},
+	getDescription: function() {
+		return this.get("description");
+	},
+	setTags: function(value) {
+		this.set("tags", value);
+	},
+	getTags: function() {
+		return this.get("tags");
+	},
 
 });
 
@@ -518,12 +655,6 @@ var Story = Backbone.Model.extend({
 StoryScape.initStoryCreation = function() {
 	StoryScape.currentStory = new Story();
 	
-	$('#add-image').click(function(e){
-		e.preventDefault();
-		
-		var top = $('#all-images-nav').offset().top - $('header').height() - 20;
-		$('html,body').animate({scrollTop: top}, 300);
-	});
 	
 	StoryScape.initStoryNavigation();
 	
@@ -534,10 +665,35 @@ StoryScape.initStoryCreation = function() {
 		StoryScape.currentStory.insertNewPage();
 	});
 	
+	
+	$("#color-picker").spectrum({
+	    color: "#000"
+	});
+	
 	$('#add-text').click(function(e){
 		e.preventDefault();
 		
 		StoryScape.currentStory.getCurrentPage().addText();
+	});
+	
+	$('#add-image').click(function(e){
+		e.preventDefault();
+		
+		var top = $('#all-images-nav').offset().top - $('header').height() - 20;
+		$('html,body').animate({scrollTop: top}, 300);
+	});
+
+	$('#story-title').change(function(e) {
+		StoryScape.currentStory.setTitle($(this).val());
+	});
+	$('#story-description').change(function(e) {
+		StoryScape.currentStory.setDescription($(this).val());
+	});
+	$('#story-genre').change(function(e) {
+		StoryScape.currentStory.setGenre($(this).val());
+	});
+	$('#story-tags').change(function(e) {
+		StoryScape.currentStory.setTags($(this).val());
 	});
 
 
@@ -577,40 +733,68 @@ StoryScape.initStoryNavigation = function() {
 };
 
 /**
- * Helper function to animate an element based on an action code
+ * Helper function to animate an element based on an action code. Uses Jquery UI, and Transit
  */
 StoryScape.animateElement = function($el,code) {
 
+	var tinyHopDistance = (704+440)/64,
+		tinyHopTime = (1280+800)/64,
+		smallHopDistance = (704+440)/8, 
+		smallHopTime = (1280+800)/8,
+		bigHopDistance = (704+440)/4; 
+
 	var animationTime = 1000;
-	console.log($el, code);
+	
+	var width = $el.width(),
+		height = $el.height();
 	
 	switch( parseInt(code, 10) ) {
 		case ACTION_CODES["Fade Out"]:
 			$el.animate({opacity: 0.25}, animationTime).delay(600).animate({opacity: 1},100); 
 			break; 
 		case ACTION_CODES["Toggle Fade"]:
+			$el.fadeOut(animationTime).fadeIn(animationTime * 1.5);
 			break; 
 		case ACTION_CODES["Expand"]:
+			$el.transition({'scale':2},animationTime, 'linear').transition({'scale':1},animationTime);
 			break; 
 		case ACTION_CODES["Shrink"]:
+			$el.transition({'scale':.5},animationTime, 'linear').transition({'scale':1},animationTime);
 			break; 
 		case ACTION_CODES["Expand-Shrink"]:
+			$el.transition({'scale':2},animationTime, 'linear').transition({'scale':.5},animationTime, 'linear').transition({'scale':1},animationTime, 'linear');
 			break; 
 		case ACTION_CODES["Horizontal Shake"]:
+	        var speed = 2 * tinyHopTime;
+	        $el.effect("bounce", {times: 1, distance:tinyHopDistance, direction:'right'}, speed)
+               .effect('bounce', {times:1, distance:tinyHopDistance, direction:'left'}, speed)
+               .effect('bounce', {times:1, distance:tinyHopDistance, direction:'right'}, speed); 
+
 			break; 
 		case ACTION_CODES["Vertical Shake"]:
+	        var speed = 2 * tinyHopTime;
+	        $el.effect("bounce", {times: 1, distance:tinyHopDistance, direction:'down'}, speed)
+               .effect('bounce', {times:1, distance:tinyHopDistance, direction:'up'}, speed)
+               .effect('bounce', {times:1, distance:tinyHopDistance, direction:'down'}, speed); 
 			break; 
 		case ACTION_CODES["Jump"]:
+	        var speed = 2 * smallHopTime;
+	        $el.effect('bounce', {times:1, distance:smallHopDistance, direction:'up'}, speed);
 			break; 
 		case ACTION_CODES["Spin"]:
+			$el.transition({rotate: "360deg"}, animationTime);
 			break; 
 		case ACTION_CODES["Drag"]:
 			break; 
 		case ACTION_CODES["Rubberband"]:
 			break; 
 		case ACTION_CODES["Slide Left"]:
-			break; 
+			$el.animate({ 'marginLeft' : '-='+bigHopDistance+'px'}, animationTime)
+				.animate({ 'marginLeft' : '+='+bigHopDistance+'px'}, animationTime);
+        	break; 
 		case ACTION_CODES["Slide Right"]:
+			$el.animate({ 'marginLeft' : '+='+bigHopDistance+'px'}, animationTime)
+				.animate({ 'marginLeft' : '-='+bigHopDistance+'px'}, animationTime);
 			break;
 		default:
 	}

@@ -465,6 +465,7 @@ def storyscape(request):
     return render_to_response(
                  'storyscape/create.html',
                  {'user': request.user, 
+                  'show_personal_library': True,
                   "media_objects": media_objects,
                   "stories":stories,
                   'action_codes':ACTION_CODES,
