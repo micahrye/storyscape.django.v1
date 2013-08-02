@@ -177,10 +177,10 @@ LOGGING = {
 # CUSTOM STORYSCAPE VARIABLES
 
 MEDIAOBJECT_UPLOAD_URL_ROOT_DIR_NAME = 'sodiioo-mo'
-SODIIOO_SITE_URL = 'http://sodiio.media.mit.edu'
+SODIIOO_SITE_URL = 'http://storyscape.media.mit.edu'
 STORYSCAPE_STORIES_URL_ROOT = 'storyscape_media/stories/'
-STORYSCAPE_IMAGE_URL_ROOT = filepath + '/media/storyscape_media/stories/' 
-MEDIALIBRARY_URL_ROOT = filepath + '/media/' 
+STORYSCAPE_IMAGE_URL_ROOT = os.path.join(filepath, '../media/storyscape_media/stories/')
+MEDIALIBRARY_URL_ROOT = os.path.join(filepath, '../media/') 
 
 
 # REGISTRATION VARIABLES

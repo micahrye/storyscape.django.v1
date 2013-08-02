@@ -1,21 +1,10 @@
 {% extends "base.html" %}
 {% load tagging_tags %}
 
+{% block pagename %}STORY_LIBRARY{% endblock %}
+
 {% block content %}
-<h1>Stories</h1>
-  <div id="thumbbox">
-    {% for story in stories %}
-    {% empty %}
-    	<h2>No stories!</h2>
-    	<p>Looks like we don't have any stories yet. That means you can be the first to <a href="{% url create_story %}">create one</a>!
-    {% endfor %}
+<h1>Story Library</h1>
 
-  </div>
-
-  <div id="pages-wrapper">
-    <div id='pages'>
-       <div id="jpaginate"> </div>
-    </div>
-  </div>
-    
+{% include "medialibrary/generic_library.html" with object_name="Story" object_name_plural="Stories" favorites_name="My" %}
 {% endblock %}

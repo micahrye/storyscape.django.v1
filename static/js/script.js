@@ -15,6 +15,8 @@ $(document).ready(function () {
 			StoryScape.initToastr();
 			StoryScape.initStoryPreview();
 			break;
+		case "STORY_LIBRARY":
+			StoryScape.initStoryLibrary();
 		default:
 			break;
 	}
@@ -118,26 +120,9 @@ StoryScape.imageUpload = function(dataString) {
 }
 
 /**
- * Called on init on any page that has a media library
+ * Called from the initialization function of any library
  */
-StoryScape.initImageLibrary = function() {
-	
-
-	$("#image-upload").click(function(e) {
-		e.preventDefault();
-		$.ajax({
-			type: "GET",
-			url: '/medialibrary/image_upload/',
-			data: {},
-			success: StoryScape.imageUpload
-		});
-	});
-	StoryScape.reloadPaginatedContent = function() {
-		StoryScape.SEARCH_TERM = $("#search-field").val();
-		var data = {'SEARCH_TERM': StoryScape.SEARCH_TERM, 'GET_ALL_IMAGES': StoryScape.ALL_IMAGES || false};
-		StoryScape.loadPaginatedContent("/medialibrary/get_media_objects", StoryScape.CURRENT_PAGE, StoryScape.initializeMediaLibraryContent, data);
-	}
-	
+StoryScape.initGenericLibrary = function() {
 	$("#search-form").submit(function(e) {
 		e.preventDefault();
 		StoryScape.reloadPaginatedContent();
@@ -166,7 +151,30 @@ StoryScape.initImageLibrary = function() {
 		$("#search-field").val("").keyup();
 		StoryScape.reloadPaginatedContent();
 	})
+}
 
+/**
+ * Called on init on any page that has a media library
+ */
+StoryScape.initImageLibrary = function() {
+	
+
+	$("#image-upload").click(function(e) {
+		e.preventDefault();
+		$.ajax({
+			type: "GET",
+			url: '/medialibrary/image_upload/',
+			data: {},
+			success: StoryScape.imageUpload
+		});
+	});
+	StoryScape.reloadPaginatedContent = function() {
+		StoryScape.SEARCH_TERM = $("#search-field").val();
+		var data = {'SEARCH_TERM': StoryScape.SEARCH_TERM, 'GET_ALL_IMAGES': StoryScape.ALL_IMAGES || false};
+		StoryScape.loadPaginatedContent("/medialibrary/get_media_objects", StoryScape.CURRENT_PAGE, StoryScape.initializeMediaLibraryContent, data);
+	}
+	
+	StoryScape.initGenericLibrary();
 }
 
 /**
@@ -220,6 +228,24 @@ StoryScape.initializeMediaLibraryContent = function() {
 }
 
 
+/******************** Stories Library ****************************************/
+
+/**
+ * Called on init on the story library page
+ */
+StoryScape.initStoryLibrary = function() {
+	
+	StoryScape.pageSpecificMediaInitialize = function() {
+		
+	}
+	
+	StoryScape.reloadPaginatedContent = function() {
+		StoryScape.SEARCH_TERM = $("#search-field").val();
+		var data = {'SEARCH_TERM': StoryScape.SEARCH_TERM, 'GET_ALL_STORIES': StoryScape.ALL_IMAGES || false};
+		StoryScape.loadPaginatedContent("/storyscape/stories/", StoryScape.CURRENT_PAGE, StoryScape.initializeMediaLibraryContent, data);
+	}
+	StoryScape.initGenericLibrary();
+}
 
 
 /******************** Story Models (Requires Backbone.js) ****************************************/
@@ -228,6 +254,53 @@ StoryScape.initializeMediaLibraryContent = function() {
  * The class for a dumb model to hold the information of a media object.
  */
 var MediaObject = Backbone.Model.extend({
+	
+	constructor : function ( attributes, options ) {
+
+		var scaleX = $('#builder-pane').innerWidth() / StoryScape.DEVICE_WIDTH,
+			scaleY = $('#builder-pane').innerHeight() / StoryScape.DEVICE_HEIGHT;
+
+		if (attributes) {
+			if (attributes.x) {
+				attributes.x *= scaleX;
+			}
+			if (attributes.y) {
+				attributes.y *= scaleY;
+			}
+			if (attributes.width) {
+				attributes.width *= scaleX;
+			}
+			if (attributes.height) {
+				attributes.height *= scaleX;
+			}
+			if (attributes.font_size) {
+				attributes.font_size *= Math.ceil(attributes.font_size * scaleX);
+			}
+		}
+		
+		Backbone.Model.apply( this, arguments );
+		
+	},
+
+	toJSON: function(){
+		var json = this.attributes;
+		
+		var scaleX = StoryScape.DEVICE_WIDTH / $('#builder-pane').innerWidth(),
+			scaleY = StoryScape.DEVICE_HEIGHT / $('#builder-pane').innerHeight();
+		
+		json.x *= scaleX;
+		json.y *= scaleY;
+		json.width *= scaleX;
+		json.height *= scaleY;
+		  
+		if (json.font_size) {
+			json.font_size = Math.floor(json.font_size * scaleX);
+		}
+		  
+		return json;
+
+	},
+
 	getX: function() {
 		return this.get("x");
 	},
@@ -714,6 +787,10 @@ var Story = Backbone.Model.extend({
 });
 
 /******************** Story Creator ****************************************/
+
+
+StoryScape.DEVICE_WIDTH = 1280;
+StoryScape.DEVICE_HEIGHT = 800;
 
 /**
  * Should be called before Story Creator init, and Story Preview init, or anything that needs toastr

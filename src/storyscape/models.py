@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
+from django.conf import settings
 
 import tagging
 
@@ -49,6 +50,26 @@ class Story(models.Model):
             msg = "Story, not populated yet"
 
         return msg
+
+    def get_zip_name(self):
+        story_name = self.title.replace(" ", "_")
+        return story_name+'.zip'
+
+    def get_thumbnail_name(self):
+        return 'thumbnail_icon.png'
+    
+    def get_filesave_path(self):
+        story_name = self.title.replace(" ", "_")
+        story_zip_name = self.get_zip_name()
+        rurl = settings.SODIIOO_SITE_URL+settings.MEDIA_URL+settings.STORYSCAPE_STORIES_URL_ROOT
+        story_thumbnail_name = self.get_thumbnail_name()
+        creator = User.objects.get(id=self.creator_uid)
+        
+        self.download_url = rurl+creator.username+'/'+story_name+'/'+story_zip_name
+        rurl = settings.STORYSCAPE_STORIES_URL_ROOT
+        self.thumb_url = rurl+creator.username+'/'+story_name+'/'+story_thumbnail_name
+        file_save_path = settings.STORYSCAPE_IMAGE_URL_ROOT + self.creator_name +'/' + story_name + '/' 
+        return file_save_path
 
 class Page(models.Model):
     # each page is associated with a particular Story

@@ -4,7 +4,7 @@ Design of this model is influnced by Dublin Core Element Set Metadata.
 
 from django.db import models
 from django.contrib.auth.models import User
-import settings
+from django.conf import settings
 
 import tagging
 from tagging.fields import TagField

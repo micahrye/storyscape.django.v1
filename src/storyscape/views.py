@@ -1,5 +1,5 @@
 import commands
-import os
+import os, shutil
 import random
 import logging 
 from collections import OrderedDict
@@ -9,15 +9,16 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
 
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.paginator import Paginator
 from django.db.models import Q
 
 from django.db.models.query import QuerySet
 from decorators import ajax_required
 from django.views.decorators.http import require_POST, require_GET
 
-from django.core import serializers
-import settings
+from django.template.loader import render_to_string
+from django.conf import settings
+from tagging.models import TaggedItem, Tag
 import simplejson
 
 from storyscape.models import Story, PageMediaObject, Page
@@ -47,8 +48,54 @@ ACTION_CODES = OrderedDict([('Fade Out',105),
                 ('Slide Right',101),
                 ]);
 
+def create_download_media(pmo, story):
+    dload_url = story.creator_name+'/'
+    dload_url += story.title.replace(" ", "_") + '/'
+    if not os.path.exists(os.path.join(settings.STORYSCAPE_IMAGE_URL_ROOT, dload_url)): 
+        os.makedirs(os.path.join(settings.STORYSCAPE_IMAGE_URL_ROOT, dload_url))  
 
-def populate_pmo_from_json(pmo_json, z_index, page, existing_pmo):
+    png_url = pmo.media_object.url
+    png_url = png_url.replace('/mod/', '/org/')
+    svg_url = png_url.replace('/png/', '/svg/').replace('.png', '.svg')
+    jpg_url = png_url.replace('/png/', '/jpg/').replace('.png', '.jpg')
+    not_svg = False
+    try:
+        svg_mo = MediaObject.objects.get(url=svg_url)
+        url = svg_mo.url
+    except MediaObject.DoesNotExist:
+        url = png_url
+        not_svg = True
+    if not_svg: 
+        try:
+            jpg_mo = MediaObject.objects.get(url=jpg_url)
+            url = jpg_mo.url
+        except MediaObject.DoesNotExist:
+            url = png_url
+
+    #if there is a svg file to use for image resize/creation use it 
+    if url[len(url)-3:].lower() == 'svg':          
+        dload_url += "/" + os.path.split(url)[1][:-3]+'png'
+    elif url[len(url)-3:].lower() == 'jpg': 
+        dload_url += "/" + os.path.split(url)[1][:-3]+'png'
+    else:
+        dload_url += "/" + os.path.split(url)[1]
+        
+    # if the file already exists we want to create a different named file
+    for _ in range(0,10):
+        if os.path.exists(settings.STORYSCAPE_IMAGE_URL_ROOT+dload_url) or PageMediaObject.objects.filter(download_media_url=dload_url).count():
+            dload_url = dload_url[:-4]+"_"+str(random.randint(0,100000))+".png"
+        else: 
+            break
+        pmo.download_media_url = dload_url
+    # convert -background none -resize 800x200\! railroad.svg +antialias railroad.png
+    cmd_str = 'convert -background none '+ settings.MEDIALIBRARY_URL_ROOT+ url +' -resize '
+    cmd_str += str(pmo.width) +'x'+ str(pmo.height)+'\! +antialias png32:'+ settings.STORYSCAPE_IMAGE_URL_ROOT+dload_url
+    commands.getoutput(cmd_str)
+    pmo.download_media_url = dload_url
+
+def populate_pmo_from_json(pmo_json, z_index, story, page, existing_pmo):
+    
+    
     if not existing_pmo:
         pmo = PageMediaObject(page = page)
         pmo.save() # TODO: unnecessary write to DB
@@ -76,6 +123,11 @@ def populate_pmo_from_json(pmo_json, z_index, page, existing_pmo):
     pmo.assoc_text = pmo_json.get('text',pmo.assoc_text)
     pmo.media_type = pmo_json.get('type',pmo.media_type)
     pmo.page = page
+
+    
+    if pmo.media_type == "image":
+        create_download_media(pmo, story)
+        
     pmo.save()
     
     return pmo
@@ -166,9 +218,12 @@ def save_story(request):
     story.description = story_json.get("description",story.description)
     story.tags.delete()
     story.tags = story_json.get("tags","")
+    story.creator_name = user.username
     
-    story.save()
-        
+    # we're going to make a bunch of thumbnails below, for the sake of cleanliness, delete that directory first
+    file_save_path = story.get_filesave_path()
+    shutil.rmtree(file_save_path)
+            
     # a list of pages, and each page is a list of media objects
     pages_info = story_json.get("pages-info")
 
@@ -202,94 +257,27 @@ def save_story(request):
         existing_pmos = dict([(pmo.id, pmo) for pmo in page.pagemediaobject_set.all()])
         
         for pmo_number, pmo_json in enumerate(page_json['media_objects']):
-            populate_pmo_from_json(pmo_json, pmo_number, page, existing_pmos.get(pmo_json.get('pagemediaobject_id')))
-            
+            populate_pmo_from_json(pmo_json, pmo_number, story, page, existing_pmos.get(pmo_json.get('pagemediaobject_id')))
+    
+    story.save()
+    
+    # create the thumbnail for this story from the thumbnail images that were created during create_download_media
+    utilities.create_story_thumbnail(story, file_save_path)
+    
     return HttpResponse(simplejson.dumps(dict(success=True,story_id=story.id)))
 
 @login_required
 @ajax_required
 @require_POST
 def publish_story(request):
-    user = request.user
     msg = 'something unhelpful went wrong'
     
-    ss_path_root = settings.STORYSCAPE_IMAGE_URL_ROOT
-    ml_path_root = settings.MEDIALIBRARY_URL_ROOT
-    
     story = Story.objects.get(id=request.POST['story_id'])
-    pages = story.page_set.order_by('page_number')
-    for page in pages:
-        pmos = page.pagemediaobject_set.order_by('z_index')
-        for pmo in pmos: 
-            dload_url = story.creator_name+'/'
-            dload_url += story.title.replace(" ", "_") + '/'
-            if not os.path.exists(os.path.split(ss_path_root + dload_url)[0]): 
-                os.makedirs(os.path.split(ss_path_root + dload_url)[0])  
-            
-            
-            if pmo.media_type == 'image':
-                png_url = pmo.media_object.url
-                png_url = png_url.replace('/mod/', '/org/')
-                svg_url = png_url.replace('/png/', '/svg/').replace('.png', '.svg')
-                jpg_url = png_url.replace('/png/', '/jpg/').replace('.png', '.jpg')
-                not_svg = False
-                try:
-                    svg_mo = MediaObject.objects.get(url=svg_url)
-                    url = svg_mo.url
-                except MediaObject.DoesNotExist:
-                    url = png_url
-                    not_svg = True
-                if not_svg: 
-                    try:
-                        jpg_mo = MediaObject.objects.get(url=jpg_url)
-                        url = jpg_mo.url
-                    except MediaObject.DoesNotExist:
-                        url = png_url
-                
-
-                #if there is a svg file to use for image resize/creation use it 
-                if url[len(url)-3:].lower() == 'svg':          
-                    dload_url += "/" + os.path.split(url)[1][:-3]+'png'
-                elif url[len(url)-3:].lower() == 'jpg': 
-                    dload_url += "/" + os.path.split(url)[1][:-3]+'png'
-                else:
-                    dload_url += "/" + os.path.split(url)[1]
-                    
-                # if the file already exists we want to create a different named file
-                for i in range(0,10):
-                    if os.path.exists(ss_path_root+dload_url):
-                        dload_url = dload_url[:-4]+"_"+str(random.randint(0,100000))+".png"
-                    else: 
-                        break
-                            
-               
-                cmd_str = 'convert -background none '+ ml_path_root+ url +' -resize '
-                cmd_str += str(pmo.width) +'x'+ str(pmo.height)+'\! +antialias png32:'+ ss_path_root+dload_url
-                results = commands.getoutput(cmd_str)
-                if not results: 
-                    pmo.download_media_url = dload_url
-                    pmo.save()
-                    msg = 'seems to have went well'
-                elif (pmo.width == 0) or (pmo.height == 0): 
-                    pmo.delete() 
-                else:
-                    msg = "download_media_url not created"
-                    return HttpResponse(msg)
-            else:
-                pass
-            
             
     story.is_published = False 
     
-    story_name = story.title.replace(" ", "_")
-    story_zip_name = story_name+'.zip'
-    story_thumbnail_name = 'thumbnail_icon.png'
-    rurl = settings.SODIIOO_SITE_URL+settings.MEDIA_URL+settings.STORYSCAPE_STORIES_URL_ROOT
-    story.download_url = rurl+user.username+'/'+story_name+'/'+story_zip_name
-    rurl = settings.STORYSCAPE_STORIES_URL_ROOT
-    story.thumb_url = rurl+user.username+'/'+story_name+'/'+story_thumbnail_name
+    file_save_path = story.get_filesave_path()
     story.save()
-    file_save_path = ss_path_root + story.creator_name +'/' + story_name + '/' 
     try: 
         utilities.story_to_xml(story, file_save_path)
     except IOError:
@@ -309,7 +297,7 @@ def publish_story(request):
     
     story.save()
     
-    exempt = [story_thumbnail_name, story_zip_name]  
+    exempt = [story.get_thumbnail_name(), story.get_zip_name()]
     utilities.remove_dir_files(file_save_path, exempt) 
     return HttpResponse(msg)
 
@@ -375,68 +363,42 @@ def create_story(request, story_id=None):
                  context_instance=RequestContext(request))
 
 def stories_library(request):
-    
-    if not request.user.is_authenticated():
-        return render_to_response('public/index.html',context_instance=RequestContext(request))
-    
-    objs = []
-    if request.is_ajax():
-        if request.method == "GET":
-            if "TOTAL_NUM_PAGES" in request.GET: 
-                objs = Story.objects.filter(is_published=True)
-                paginator = Paginator(objs, NUM_ITEMS_PER_PAGE) 
-                return HttpResponse(simplejson.dumps(paginator.num_pages))
-            
-            if( "TEXT_SEARCH" in request.GET or 'TAG_SEARCH' in
-                request.GET or 'SEARCH_PAGE_CHANGE' in request.GET ):
-                
-                page_number = request.GET.get('PAGE_NUMBER', 1)
-                search_term = request.GET['SEARCH_TERM']
-                objs = None # search_stories(search_term)
-                paginator = Paginator(objs, NUM_ITEMS_PER_PAGE)
-                try:
-                    objs = paginator.page(page_number).object_list
-                except PageNotAnInteger:
-                    objs = paginator.page(1).object_list
-                except EmptyPage:
-                    objs = paginator.page(paginator.num_pages).object_list
-                
-                for obj in objs:
-                    obj.all_tags = simplejson.dumps([tag.name for tag in obj.tags.all()])
-                    
-                obj_json = serializers.serialize('json', objs, extras=('all_tags', ))
-                #rt_json = serialize_tags(random_tags)
-                rtn = {}
-                rtn['num_pages'] = paginator.num_pages
-                #instead of passing as rtn['stories'] and rtn['media_objects'] separately
-                #we can pass it as one parameter as rtn['objs'] but for now, I don't want
-                #to change the html files
-                rtn['stories'] = obj_json
-                
-                return HttpResponse(simplejson.dumps(rtn))
-            
-        
-    objs = Story.objects.filter(is_published=True)
-    paginator = Paginator(objs, NUM_ITEMS_PER_PAGE)
-    try:
-        objs = paginator.page(1).object_list
-    except EmptyPage:
-        pass
-
-    # we get the most common tags for this type of media object
-    #all_tags, most_common_tags = get_most_common_tags(num_tags_rtn)
-    most_common_tags = []
-    # we get a random sample of tags for this media object
-    #random_tags = get_random_tags(all_tags, NUM_TAGS_PER_PAGE)
-    random_tags = ''  
-    
-    print request.user.is_authenticated()
     return render_to_response('storyscape/stories_library.html', 
-                              {'user':request.user, 'stories':objs, 
-                              'most_common_tags': most_common_tags, 
-                              'random_tags': random_tags}, 
+                              dict(), 
                               context_instance=RequestContext(request))
 
+
+@ajax_required
+@require_GET
+def get_stories(request):
+    page_number = int(request.GET.get('PAGE_NUMBER', 1))
+    search_term = request.GET.get('SEARCH_TERM', '')
+    get_all = request.GET.get('GET_ALL_IMAGES', 'true') == 'true'
+    
+    if search_term:
+        tag_query = Tag.objects.filter(name__icontains=search_term)
+        query = TaggedItem.objects.get_union_by_model(Story, tag_query)
+    else:
+        query = Story.objects
+
+    if request.user.is_authenticated() and not get_all:
+        query = query.filter(creator_uid = request.user.id)
+    
+    objs = query.order_by('-id').all()
+    
+    paginator = Paginator(objs, NUM_ITEMS_PER_PAGE)
+    
+    page_number = min(paginator.num_pages, page_number)
+    stories = paginator.page(page_number).object_list
+    
+    content = render_to_string("storyscape/stories_paginated_content.html", dict(stories = stories,
+                                                  paginator = paginator), 
+                                                  context_instance=RequestContext(request))
+    
+    return HttpResponse(simplejson.dumps(dict(pages = paginator.num_pages,
+                                              current_page = page_number,
+                                              content = content)))
+    
 
 def reader_info(request):
     return render_to_response('storyscape/about_reader.html', 

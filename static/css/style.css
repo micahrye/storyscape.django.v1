@@ -215,6 +215,7 @@ form h2.success_message {
 	box-shadow: 0 0 5px #ccc;
 	position:relative;
 	width:188px;
+	vertical-align: top;
 }
 .thumbnail-frame {
 	border: solid 1px #ccc;
@@ -870,4 +871,9 @@ background-color:rgba(0,0,0,0)}
 }
 .builder-pane-container.preview-container {
 	margin-bottom:20px;
+}
+
+.no-found-message {
+	text-align:center;
+	margin-top:80px;
 }

@@ -6,6 +6,8 @@ import os
     Creation date: 08-21-12
 '''
 
+STORY_THUMBNAIL_SIZE = 180
+
 def story_to_xml(story, save_path):
     pages = story.page_set.order_by('page_number')
     title = story.title.lower().replace(' ', '')
@@ -103,24 +105,30 @@ def create_story_thumbnail(story, save_path):
         then resize it to our thumbnail size. Recall that the default
         story page is 1280x800
     '''
+    
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+        
     page = story.page_set.get(page_number=0)
     pmos = page.pagemediaobject_set.filter(media_type='image').order_by('z_index')
     comp_info = ''
     for pmo in pmos:
-        #NOTE: can have attribute error if no download_media_url defined. 
-        file = save_path + os.path.split(pmo.download_media_url)[1] 
-        comp_info += file+' '+ ' -geometry +'+str(pmo.xcoor)+'+'+str(pmo.ycoor)+' -composite '
-        # should include some error checking someday 
+        if pmo.download_media_url:
+            filename = save_path + os.path.split(pmo.download_media_url)[1] 
+            comp_info += filename+' '+ ' -geometry +'+str(pmo.xcoor)+'+'+str(pmo.ycoor)+' -composite '
 
-    cmd1 = 'convert -size 1280x800 xc:white ' + comp_info + save_path + 'thumbnail_icon.png'
+    cmd1 = 'convert -size 1280x800 xc:white ' + comp_info + save_path + 'thumbnail_icon_large.png'
+    print cmd1
     result = commands.getoutput( cmd1 )
-    
+    print result
     # if all good need to resize this
 
     # NOTE: this will preserve aspetc ratio and result in image 
-    # that has an x or y no grater than 120px
-    cmd2 = 'convert -resize 120x120 ' + save_path + 'thumbnail_icon.png ' + save_path + 'thumbnail_icon.png'
+    # that has an x or y no greater than STORY_THUMBNAIL_SIZE
+    cmd2 = 'convert -resize {0}x{0} {1}thumbnail_icon_large.png {1}thumbnail_icon.png'.format(STORY_THUMBNAIL_SIZE, save_path)
+    print cmd2
     result = commands.getoutput( cmd2 )
+    print result
     
     # if result not '' then some type of error 
     return True if result == '' else False 

@@ -1,0 +1,28 @@
+{% if stories %}
+	{% spaceless %}
+	<div id="thumbbox" class="thumbnail-group">
+		{% for story in stories %}
+			<div class="thumbnail-container" data-story-id="{{ story.id }}">
+				<div class="thumbnail-frame">
+					<a href="{% url story_preview story.id %}">
+						<img src='{{ MEDIA_URL }}{{ story.thumb_url }}' class='image-thumbnail' />
+					</a>
+				</div>
+		    	<div class='image-tags' > 
+					{% for word in story.tags|slice:":4" %}
+		    			<div class = "tag-link">{{word}}</div>
+		    		{% endfor %}
+		    	</div>
+	    	</div>
+	    {% endfor %}
+	</div>
+	    
+	<div id="pages-wrapper">
+	    <div id='pages'>
+	       <div id="jpaginate"> </div>
+	    </div>
+	</div>
+	{% endspaceless %}
+{% else %}
+	<h1 class="no-found-message">No stories found!</h1>
+{% endif %}
