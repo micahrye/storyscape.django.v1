@@ -17,6 +17,7 @@
 				<span class="button-divider"></span>
 				<button class="btn" id="save-story"><span class="button-icon save-icon"></span><span>Save</span></button>
 				<button class="btn" id="publish-story"><span class="button-icon publish-icon"></span><span>Publish</span></button>
+				<button class="btn" id="preview-story"><span class="button-icon preview-icon"></span><span>Preview</span></button>
 			</div>
 		{% endspaceless %}
 	</div>
@@ -29,7 +30,7 @@
 					<div class="builder-container left">
 						<div id="builder-pane" class="builder-pane">
 						</div>
-						{% include "storyscape/storyline_navigation.html" %} 
+						{% include "storyscape/storyline_navigation.html" with creating=1 %} 
 					</div>
 					<div class="builder-container right">
 						<div id='control-panel' class='control-panel'>
@@ -143,7 +144,6 @@
 {% endblock %}
 
 {% block extra_javascript_libraries %}
-	<script type="text/javascript" src="/static/js/backbone.js"></script>
 	<script type="text/javascript" src="/static/js/jquery.actual.js"></script>
 	<script type="text/javascript" src="/static/js/spectrum.js"></script>
 	<script type="text/javascript" src="/static/ui-lightness/jquery-ui-1.10.3.custom.js"></script>

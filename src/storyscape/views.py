@@ -64,6 +64,8 @@ def populate_pmo_from_json(pmo_json, z_index, page, existing_pmo):
     pmo.anime_code = pmo_json.get('action_code',pmo.anime_code)
     pmo.animate_on = pmo_json.get('action_trigger_code',pmo.animate_on)
     pmo.goto_page = pmo_json.get('page_on_touch',pmo.goto_page)
+    if not pmo.goto_page:
+        pmo.goto_page = -1
     pmo.trigger_reaction_on = pmo_json.get('action_trigger_code',pmo.trigger_reaction_on)
     pmo.reaction_object = 'none' 
     pmo.xcoor = pmo_json.get('x',pmo.xcoor)

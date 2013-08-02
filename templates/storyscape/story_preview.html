@@ -8,16 +8,16 @@
 {% block content %}
 	
 	<h1 id="story-title-display" class="story-title-display">{{ story.title|title }}</h1>
-	<div class="preview-controls">
+	<div class="preview-options">
 		{% if story.creator_uid == request.user.id %}
-			<button class='btn'>Edit</button>
+			<a class='btn' href="{% url edit_story story.id %}"><span class="button-icon edit-icon"></span><span>Edit</span></a>
 		{% endif %}
 	</div>
 	<div id='storyscape-container'>
 	 
 		{% spaceless %}
 			<div> 
-				<div id='builder-pane-container' class="builder-pane-container"> 
+				<div id='builder-pane-container' class="builder-pane-container preview-container"> 
 					<div class="builder-container">
 						<div id="builder-pane" class="builder-pane">
 						</div>
@@ -26,6 +26,9 @@
 				</div>
 			</div>
 		{% endspaceless %}
+	</div>
+	<div class="preview-controls">
+		<button class="btn btn-large btn-success" id="make-sound">Make Sound</button>
 	</div>
 
 {% endblock %}
@@ -43,7 +46,6 @@
 {% endblock %}
 
 {% block extra_javascript_libraries %}
-	<script type="text/javascript" src="/static/js/backbone.js"></script>
 	<script type="text/javascript" src="/static/js/jquery.actual.js"></script>
 	<script type="text/javascript" src="/static/ui-lightness/jquery-ui-1.10.3.custom.js"></script>
 {% endblock %}

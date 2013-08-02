@@ -509,9 +509,11 @@ var Page = Backbone.Model.extend({
 		$('.image-menu #animation-select').val(mediaObject.getActionCode() || 0);
 		$('.image-menu #animation-select').change(function() {
 			mediaObject.setActionCode($(this).val());
+			mediaObject.setActionTriggerCode($('#animation-trigger-select').val());
 		});
 		$('.image-menu #animation-trigger-select').val(mediaObject.getActionTriggerCode() || ACTION_TRIGGER_CODES['Touch']);
 		$('.image-menu #animation-trigger-select').change(function() {
+			mediaObject.setActionCode($("#animation-select").val());
 			mediaObject.setActionTriggerCode($(this).val());
 		});
 		$('.image-menu #preview-animation-button').click(function() {
@@ -621,6 +623,7 @@ var Story = Backbone.Model.extend({
 		if (! this.getStoryId()) {
 			$("#publish-story").addClass("disabled");
 			$("#delete-story").addClass("disabled");
+			$("#preview-story").addClass("disabled");
 		}
 		
 	},
@@ -815,6 +818,7 @@ StoryScape.initStoryCreation = function() {
 					toastr["success"]("Story successfully saved!");
 					$("#publish-story").removeClass("disabled");
 					$("#delete-story").removeClass("disabled");
+					$("#preview-story").removeClass("disabled");
 				},
 		});
 	});
@@ -870,6 +874,14 @@ StoryScape.initStoryCreation = function() {
 				},
 		});
 	});
+	
+	$("#preview-story").click(function() {
+		if ($(this).hasClass("disabled")) {
+			return;
+		}
+		window.location = "/storyscape/preview/"+StoryScape.currentStory.getStoryId()+"/";
+	});
+
 
 	/**
 	 * Function called at the end of the Media Library Page Initialization
@@ -1067,12 +1079,36 @@ StoryScape.initStoryPreview = function() {
 	StoryScape.finishMediaObjectElInit = function($el, mediaObject) {
 		$el.mousedown(function(e) {
 			e.stopPropagation();
-			if (mediaObject.getActionTriggerCode() == ACTION_CODES['Touch']) {
+			e.preventDefault();
+			if (mediaObject.getActionTriggerCode() == ACTION_TRIGGER_CODES['Touch']) {
 				StoryScape.animateElement($el, mediaObject.getActionCode());
+			}
+			if (mediaObject.getPageOnTouch() >= 1) {
+				StoryScape.currentStory.changePage(mediaObject.getPageOnTouch());
 			}
 		});
 		
 	}
+	
+	$("#make-sound").click(function () {
+		$(".media-object").each(function () {
+			var mediaObject = $(this).data("mediaObject");
+			if (mediaObject.getActionTriggerCode() == ACTION_TRIGGER_CODES['Sound']) {
+				StoryScape.animateElement($(this), mediaObject.getActionCode());
+			}
+		});
+	});
+	
+	$(document).keydown(function(e){
+	    if (e.keyCode == 37) { 
+			StoryScape.currentStory.changePage(StoryScape.currentStory.getIndex() - 1);
+	    	return false;
+	    }
+	    if (e.keyCode == 39) { 
+			StoryScape.currentStory.changePage(StoryScape.currentStory.getIndex() + 1);
+	    	return false;
+	    }
+	});
 
 	
 	StoryScape.initStoryNavigation();
