@@ -9,7 +9,7 @@
 	<div class="header-with-nav">
 		{% spaceless %}
 			<h1>StoryScape</h1>
-			<div class="pull-right">
+			<div class="pull-right" id="story-controls">
 				<button class="btn" id="delete-story"><span class="button-icon delete-icon"></span><span>Delete</span></button>
 				<span class="button-divider"></span>
 				<button class="btn" id="new-story"><span class="button-icon new-icon"></span><span>New</span></button>
@@ -122,6 +122,10 @@
 		{% include "medialibrary/image_library.html" %}
 	
 	</div>
+	
+	<script type="template" id="story-list-item">
+		<a href="#" class="load-story-option" data-story-id="<%=story_id %>"><%= title %>&nbsp;</a>
+	</script>
 {% endblock %}
 
 {% block extra_css %}
@@ -131,6 +135,7 @@
 
 {% block extra_javascript %}
 	<script type="text/javascript">
+	window.LOAD_STORY_ID = {% if story %}"{{ story.id }}"{% else %}null{% endif %};
 	window.NEED_ADD_BUTTONS = true;
 	window.ACTION_CODES = {{ action_codes|jsonify|safe }};
 	window.ACTION_TRIGGER_CODES = {{ action_trigger_codes|jsonify|safe }};
@@ -138,7 +143,7 @@
 {% endblock %}
 
 {% block extra_javascript_libraries %}
-	<script type="text/javascript" src="/static/js/backbone-min.js"></script>
+	<script type="text/javascript" src="/static/js/backbone.js"></script>
 	<script type="text/javascript" src="/static/js/jquery.actual.js"></script>
 	<script type="text/javascript" src="/static/js/spectrum.js"></script>
 	<script type="text/javascript" src="/static/ui-lightness/jquery-ui-1.10.3.custom.js"></script>

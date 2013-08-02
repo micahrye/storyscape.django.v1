@@ -4,11 +4,16 @@ StoryScape = window.StoryScape || {};
 $(document).ready(function () {
 	switch (PAGE_NAME) {
 		case "CREATE_STORY":
+			StoryScape.initToastr();
 			StoryScape.initStoryCreation();
 			StoryScape.initImageLibrary();
 			break;
 		case "IMAGE_LIBRARY":
 			StoryScape.initImageLibrary();
+			break;
+		case "PREVIEW_STORY":
+			StoryScape.initToastr();
+			StoryScape.initStoryPreview();
 			break;
 		default:
 			break;
@@ -307,7 +312,7 @@ var MediaObject = Backbone.Model.extend({
  * The class for a collection of MediaObjects
  */
 var MediaObjectSet = Backbone.Collection.extend({
-	  model: MediaObject
+	model: MediaObject
 });
 
 /**
@@ -317,11 +322,17 @@ var MediaObjectSet = Backbone.Collection.extend({
  */
 var Page = Backbone.Model.extend({
 
-	constructor: function() {
-	    Backbone.Model.apply(this, arguments);
+	constructor : function ( attributes, options ) {
+		
+		if (attributes && attributes.media_objects) {
+			this.objects = new MediaObjectSet(attributes.media_objects);
+		} else {
+			this.objects = new MediaObjectSet();
+		}
+		Backbone.Model.apply( this, arguments );
+		
 	},
 	initialize: function() {
-		this.objects = new MediaObjectSet();
 		this.width = $('#builder-pane').innerWidth();
 		this.height = $('#builder-pane').innerHeight();
 		
@@ -344,6 +355,10 @@ var Page = Backbone.Model.extend({
 			$('.context-sensitive-menu').addClass("hidden");
 			$('.story-menu').removeClass("hidden");
 		})
+		
+		for (var i = 0; i < this.objects.models.length; i++) {
+			this.createElForMediaObject(this.objects.models[i]);
+		}
 	},
 	
 	toJSON: function(){
@@ -397,7 +412,6 @@ var Page = Backbone.Model.extend({
 	
 	createElForMediaObject: function(mediaObject) {
 		var $el = $('<div class="media-object"></div>');
-		
 		if (mediaObject.getType() == "text") {
 			var $textArea = $('<textarea>' + mediaObject.getText() + '</textarea>');
 			$el.append($textArea);
@@ -429,20 +443,8 @@ var Page = Backbone.Model.extend({
 			'height': mediaObject.getHeight(),
 			'left': mediaObject.getX(),
 			'top': mediaObject.getY()});
-		
-		$el.drags();
-		$el.mousedown(function(e) {
-			e.stopPropagation();
-			if ($(this).hasClass("selected")) {
-				return;
-			}
-			StoryScape.currentStory.getCurrentPage().selectElement($(this));
-		});
-		
-		$el.bind('stoppeddrag', function() {
-			mediaObject.setX( $(this).position().left);
-			mediaObject.setY( $(this).position().top);
-		});
+
+		StoryScape.finishMediaObjectElInit($el,mediaObject);
 		
 		$('#builder-pane').append($el);
 		return $el;
@@ -561,7 +563,7 @@ var Page = Backbone.Model.extend({
  * Class for a collection of Pages
  */
 var PageSet = Backbone.Collection.extend({
-	  model: Page
+	model: Page
 });
 
 /**
@@ -572,6 +574,21 @@ var PageSet = Backbone.Collection.extend({
 var Story = Backbone.Model.extend({
 
 	url: "/storyscape/save/",
+
+	constructor : function ( attributes, options ) {
+		
+		if (attributes) {
+			this.pages = new PageSet(attributes.pages);
+		} else {
+			this.pages = new PageSet();
+		}
+		
+		Backbone.Model.apply( this, arguments );
+		
+		if (attributes) {
+			this.setTags(attributes.tags.join(" "));
+		}
+	},
 	initialize: function() {
 	    this.bind("change-num-pages", function() {
 	    	$("#story-total-pages").html(this.getNumPages());
@@ -588,8 +605,24 @@ var Story = Backbone.Model.extend({
 			this.getCurrentPage().createAllElements();
 	    });
 
-		this.pages = new PageSet();
-		this.insertNewPage();
+		if (! this.pages.length) {
+			this.insertNewPage();
+		}
+		this.currentIndex = 0;
+		this.trigger("change-current-page");
+		this.trigger("change-num-pages");
+		
+		$('#story-title').val(this.getTitle());
+		$('#story-genre').val(this.getGenre());
+		$('#story-description').val(this.getDescription());
+		$('#story-tags').val(this.getTags());
+		
+		$("#story-controls .btn").removeClass("disabled");
+		if (! this.getStoryId()) {
+			$("#publish-story").addClass("disabled");
+			$("#delete-story").addClass("disabled");
+		}
+		
 	},
 	
 	toJSON: function(){
@@ -615,7 +648,9 @@ var Story = Backbone.Model.extend({
 	changePage: function(index) {
 		index = _.max([index, 0]);
 		index = _.min([index, this.pages.length - 1]);
-		this.getCurrentPage().trigger("deselect");
+		if (this.getCurrentPage()) {
+			this.getCurrentPage().trigger("deselect");
+		}
 
 		this.oldIndex = this.currentIndex;
 		this.currentIndex = index;
@@ -630,13 +665,10 @@ var Story = Backbone.Model.extend({
 	insertNewPage: function() {
 		this.pages.add(new Page(), {at: this.getIndex() + 1});
 		this.trigger("change-num-pages");
-		if (this.pages.length == 1) {
-			this.currentIndex = 0;
-			this.trigger("change-current-page");
-		}
 	},
 
 	removePage: function() {
+		this.getCurrentPage().trigger("deselect");
 		this.pages.remove(this.pages.at(this.currentIndex));
 		if (this.pages.length <= 0) {
 			this.insertNewPage();
@@ -670,10 +702,10 @@ var Story = Backbone.Model.extend({
 		return this.get("tags");
 	},
 	setStoryId: function(value) {
-		this.set("story-id", value);
+		this.set("story_id", value);
 	},
 	getStoryId: function() {
-		return this.get("story-id");
+		return this.get("story_id");
 	},
 
 });
@@ -681,10 +713,54 @@ var Story = Backbone.Model.extend({
 /******************** Story Creator ****************************************/
 
 /**
+ * Should be called before Story Creator init, and Story Preview init, or anything that needs toastr
+ */
+StoryScape.initToastr = function() {
+	toastr.options = {
+			  "debug": false,
+			  "positionClass": "toast-top-full-width",
+			  "onclick": null,
+			  "fadeIn": 300,
+			  "fadeOut": 1000,
+			  "timeOut": 5000,
+			  "extendedTimeOut": 1000
+	}
+}
+
+/**
+ * Called at the end of Page.createElForMediaObject, for initializations specific to the page
+ */
+StoryScape.finishMediaObjectElInit = function($el, mediaObject) {
+	
+}
+
+/**
  * Called on page load, before the media library is initiated
  */
 StoryScape.initStoryCreation = function() {
-	StoryScape.currentStory = new Story();
+	
+	StoryScape.finishMediaObjectElInit = function($el, mediaObject) {
+		$el.drags();
+		$el.mousedown(function(e) {
+			e.stopPropagation();
+			if ($(this).hasClass("selected")) {
+				return;
+			}
+			StoryScape.currentStory.getCurrentPage().selectElement($(this));
+		});
+		
+		$el.bind('stoppeddrag', function() {
+			mediaObject.setX( $(this).position().left);
+			mediaObject.setY( $(this).position().top);
+		});
+
+	}
+	
+	if (window.LOAD_STORY_ID) {
+		StoryScape.loadStory(window.LOAD_STORY_ID);		
+	} else {
+		StoryScape.currentStory = new Story();
+	}
 	
 	
 	StoryScape.initStoryNavigation();
@@ -736,30 +812,61 @@ StoryScape.initStoryCreation = function() {
 				success:function(response) {
 					var responseData = JSON.parse(response);
 					StoryScape.currentStory.setStoryId(responseData['story_id']);
+					toastr["success"]("Story successfully saved!");
+					$("#publish-story").removeClass("disabled");
+					$("#delete-story").removeClass("disabled");
 				},
 		});
 	});
 
 	$("#new-story").click(function() {
 		StoryScape.currentStory = new Story();
+		toastr["success"]("Created a new story!");
 	});
 
 	$("#delete-story").click(function() {
+		if ($(this).hasClass("disabled")) {
+			return;
+		}
 		$.ajax("/storyscape/delete/",
 			{
 				type: "POST",
 				data:{story_id: StoryScape.currentStory.getStoryId()},
 				success:function(response) {
 					StoryScape.currentStory = new Story();
+					toastr["success"]("Story successfully deleted!");
 				},
 		});
 	});
 	$("#publish-story").click(function() {
+		if ($(this).hasClass("disabled")) {
+			return;
+		}
 		$.ajax("/storyscape/publish/",
 			{
 				type: "POST",
 				data:{story_id: StoryScape.currentStory.getStoryId()},
 				success:function(response) {
+					toastr["success"]("Story successfully published to the app!");
+				},
+		});
+	});
+	$("#open-story").click(function() {
+		$.ajax("/storyscape/my_stories/",
+			{
+				type: "GET",
+				success:function(response) {
+					var data = JSON.parse(response),
+						$modal = $(("<div class='story-list'><h3>Your Stories</h3></div>")),
+						template_text = $("#story-list-item").html();
+					for (var i = 0; i < data.length; i++) {
+						$modal.append(_.template(template_text, data[i]));
+					}
+					$modal.fancybox().click().unbind('click');
+					$modal.find('.load-story-option').click(function() {
+						StoryScape.loadStory($(this).data("story-id"), true);
+						$.fancybox.close();
+					});
 				},
 		});
 	});
@@ -780,6 +887,24 @@ StoryScape.initStoryCreation = function() {
 			StoryScape.currentStory.getCurrentPage().addImage($container.data('mediaobject-id'), $container.data('mediaobject-url'));
 		});
 	};
+}
+
+/**
+ * Helper function used to load a new story that we know the ID of. Can be called at any time for any reason.
+ */
+StoryScape.loadStory = function(storyId, showToast) {
+	$.ajax("/storyscape/load/",
+		{
+			type: "GET",
+			data: {story_id:storyId},
+			success:function(response) {
+				var data = JSON.parse(response);
+				StoryScape.currentStory = new Story(data);
+				if (showToast) {
+					toastr["success"]("Story loaded!");
+				}
+			},
+	});
 }
 
 /**
@@ -852,8 +977,10 @@ StoryScape.animateElement = function($el,code) {
 			$el.transition({rotate: "360deg"}, animationTime);
 			break; 
 		case ACTION_CODES["Drag"]:
+			toastr["info"]("This element will be draggable in the app.");
 			break; 
 		case ACTION_CODES["Rubberband"]:
+			toastr["info"]("This element will be draggable in the app, and will snap back to its origin when released.");
 			break; 
 		case ACTION_CODES["Slide Left"]:
 			$el.animate({ 'marginLeft' : '-='+bigHopDistance+'px'}, animationTime)
@@ -928,6 +1055,31 @@ StoryScape.animateElement = function($el,code) {
 
     }
 })(jQuery);
+
+
+/******************** Story Preview ****************************************/
+
+/**
+ * Called on page load
+ */
+StoryScape.initStoryPreview = function() {
+	
+	StoryScape.finishMediaObjectElInit = function($el, mediaObject) {
+		$el.mousedown(function(e) {
+			e.stopPropagation();
+			if (mediaObject.getActionTriggerCode() == ACTION_CODES['Touch']) {
+				StoryScape.animateElement($el, mediaObject.getActionCode());
+			}
+		});
+		
+	}
+
+	
+	StoryScape.initStoryNavigation();
+	StoryScape.loadStory(window.LOAD_STORY_ID);
+
+}
+
 
 /******************** Django CSRF ****************************************/
 

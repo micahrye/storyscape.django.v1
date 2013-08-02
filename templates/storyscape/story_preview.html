@@ -1,266 +1,50 @@
-{% extends "sodiio_base.html" %}
-{% load i18n %}
+{% extends "base.html" %}
+{% load json_filters %}
 
-<!--CSS-->
-{% block external_style %} 
-  <link type="text/css" rel="stylesheet" 
-        href="{{ STATIC_URL }}storyscape_static/storyline_navigation.css" />
-{% endblock %} 
-
-{% block inline_style %}
-
-<style type='text/css'> 
+{% block title %}StoryScape - {{ story.title|title }}{% endblock %}
+{% block pagename %}PREVIEW_STORY{% endblock %}
 
 
-#signup-form {
-	display:none;
-}
+{% block content %}
+	
+	<h1 id="story-title-display" class="story-title-display">{{ story.title|title }}</h1>
+	<div class="preview-controls">
+		{% if story.creator_uid == request.user.id %}
+			<button class='btn'>Edit</button>
+		{% endif %}
+	</div>
+	<div id='storyscape-container'>
+	 
+		{% spaceless %}
+			<div> 
+				<div id='builder-pane-container' class="builder-pane-container"> 
+					<div class="builder-container">
+						<div id="builder-pane" class="builder-pane">
+						</div>
+						{% include "storyscape/storyline_navigation.html" %} 
+					</div>
+				</div>
+			</div>
+		{% endspaceless %}
+	</div>
 
-.login {
-	border:solid #ccc 1px;
-	width:300px;
-	height:2em;
-	font-size:100%;
-	padding-left:5px;
-}
-.small-text{
-    font-size: .85em;
-}
-#story-holder{ 
-  width:800px; 
-  height:520px; 
-  margin-left:auto; 
-  margin-right:auto; 
-  border-radius: 5px; 
-  border:solid 1px #ccc;
-  background-color:white; 
-  box-shadow: 0 0 5px #ccc;
-} 
-#story-pane{ 
-  width:704px; 
-  height: 440px; 
-  border: solid 1px #ccc;
-  margin: 30px 0 0 40px ;
-  position: relative; 
-} 
-.page_mo{ 
-  position: absolute; 
-}
-#storyline{ 
-  margin-left:40px; 
-  left: 0;
-} 
-@font-face {
-   font-family: whitehall;
-   src: local(whitehall), url('{{ STATIC_URL }}fonts/whitehall.ttf') format('truetype');
-}
-@font-face {
-   font-family: appleberry;
-   src: local(appleberry), url('{{ STATIC_URL }}fonts/appleberry_with_cyrillic.ttf') format('truetype');
-}
-
-@font-face {
-   font-family: quirky;
-   src: local(quirky), url('{{ STATIC_URL }}fonts/JandaQuirkygirl.ttf') format('truetype');
-}
-@font-face {
-   font-family: silly;
-   src: local(silly), url('{{ STATIC_URL }}fonts/JandaSillyMonkey.ttf') format('truetype');
-}
-@font-face {
-   font-family: wildflowers;
-   src: local(wildflowers), url('{{ STATIC_URL }}fonts/Of_Wildflowers_and_Wings.ttf') format('truetype');
-}
-@font-face {
-   font-family: stary_night;
-   src: local(stary_night), url('{{ STATIC_URL }}fonts/One_Stary_Night.ttf') format('truetype');
-}
-@font-face {
-   font-family: shine;
-   src: local(shine), url('{{ STATIC_URL }}fonts/Where_Stars_Shine_the_Brightest.ttf') format('truetype');
-}
-@font-face {
-   font-family: cinnamon;
-   src: local(cinnamon), url('{{ STATIC_URL }}fonts/cinnamon_cake.ttf') format('truetype');
-}
-
-</style>
 {% endblock %}
 
-
-{% block external_javascript %}
-{% endblock %} 
-
-<!--Javascript-->
-{% block inline_javascript %}
-<script>
-$(function() {
-  configAjaxSend();
-  var paneMaxWidth = 704; 
-  var paneMaxHeight = 440; 
-  var scaleDown = 0.55
-  var url = $('#simple-story-url').val(); 
-  var storyscapeURL = $('#storyscape-url').val(); 
-  var story = {}; 
-  var totalNumPages = 0; 
-
-  var getStory = function(storyId){
-    $.ajax({ 
-      url: storyscapeURL, 
-      type: 'GET', 
-      data: {STORY_ID: storyId, 
-             SODIIO_REQUEST: true}, 
-      dataType: 'JSON', 
-      success: function(storyJSON){ 
-        story = storyJSON;
-        totalNumPages = story['pages'].length;  
-        updateTotalNumberPages(totalNumPages); 
-	    curPage = 0;
-        layoutStoryPage(curPage); 
-        updateCurrentPageNav(curPage+1); 
-      }, 
-      error: function(msg){
-        alert('no'); 
-      }
-    }); 
-  }; 
-  
-  var layoutStoryPage = function(pageNumber){ 
-    var pmos = story['pages'][pageNumber]; 
-    var $elem = ''; 
-    $('#story-pane').children().remove(); 
-    for(var i = 0; i < pmos.length; i++){
-      if( pmos[i]['type'] == 'image'){ 
-        var width = parseInt(pmos[i]['width']) * scaleDown; 
-        var height = parseInt(pmos[i]['height']) * scaleDown;
-        var xcoor = parseInt(pmos[i]['x']) * scaleDown;
-        var ycoor = parseInt(pmos[i]['y']) * scaleDown; 
-        $elem = $('<img class="page_mo" src="'+
-                             pmos[i]['url']+'" />'); 
-        $elem.css({'top':ycoor, 'left':xcoor,
-                  'width':width, 'height':height}); 
-      }else if( pmos[i]['type'] == 'text'){ 
-        var width = parseInt(pmos[i]['width']) * scaleDown; 
-        var height = parseInt(pmos[i]['height']) * scaleDown;
-        var xcoor = parseInt(pmos[i]['x']) * scaleDown;
-        var ycoor = parseInt(pmos[i]['y']) * scaleDown; 
-        var fontSize = parseInt(pmos[i]['font_size'])*scaleDown;
-        $elem = $('<textbox class="page_mo" >' +
-                  pmos[i]['text'] + '</textbox>'); 
-        $elem.css({'top':ycoor, 'left':xcoor,
-                  'width':width, 'height':height, 
-                  'font-size':fontSize, 
-                  'color':pmos[i]['font_color'],
-                  'font-family':pmos[i]['font_style']}); 
-      } 
-      $('#story-pane').append($elem);   
-    }
-  }; 
-
-  var sid = location.pathname; 
-  sid = sid.split('/'); 
-  var lsid = sid.length; 
-  var id = 0; 
-  for(var i=lsid-1; i>=0; i--){ 
-    id = parseInt(sid[i])
-    if( !isNaN(id) ){
-      getStory(id); 
-      break; 
-    }else{     
-      //getStory(0);
-    } 
-  } 
-
-  var curPage = 0;
-  function updateTotalNumberPages(pages){
-      $('#story-total-pages').text(' / ' + pages);
-  }
-  function updateCurrentPageNav(page){
-    $('#story-current-page').val(page);
-  } 
-  $('#story-prev-page').click(
-    function(){
-      if (validPageNumber(curPage - 1)) {
-        updateCurrentPageNav(curPage);
-  	    layoutStoryPage(--curPage);
-  	  } 
-    }
-  ); 
-  $('#story-next-page').click(
-    function(){
-      if (validPageNumber(curPage + 1)) {
-  	    layoutStoryPage(++curPage);
-        updateCurrentPageNav(curPage + 1);
-      }
-    }
-  );
-  $('#story-current-page').keydown(
-    function(e){
-      if(e.keyCode == 13){
-        e.preventDefault();
-        var page = parseInt($('#story-current-page').val()) -1;
-        if(validPageNumber(page) ){
-          curPage = page;
-          //TODO: need to rework curPage, need to auto 
-          //NEED save page when user enters page number
-          layoutStoryPage(curPage);
-          updateCurrentPageNav(curPage+1);
-        }else{
-            //Give error
-        }
-      }
-    }
-  ); 
-  function validPageNumber(pageNumber){
-    if( totalNumPages == 0) {
-      return false; 
-    }else if( totalNumPages <= pageNumber || pageNumber < 0){
-      //TODO: user is at end of story, go back to beginning. 
-      return false; 
-    }else if(isNaN(pageNumber)){
-      return false;
-    }else{
-      return true;
-    }		
-  }
-
- 
-});
-</script>
+{% block extra_css %}
+	<link rel="stylesheet" type='text/css' href="/static/ui-lightness/jquery-ui-1.10.3.custom.min.css">
 {% endblock %}
 
-
-{% block main_content %}
-<div><span class='section-title'>Story Preview</span></div>
-<div><span style='display:inline-block; margin:5px 0 20px 0;'>
-Experience the stories full interactivity with the <a href='{% url reader_info %}'>StoryScape mobile reader</a></span></div>
-  <div id='story-holder'> 
-    <div id='story-pane'> 
-    </div> 
-
-    <div id='storyline'>
-    	<!--<div id='storyline-bar'> --> 
-        <div id='story-nav-wrapper'>
-          <div id='story-nav-controls'>
-          <!--<div id='story-prev-page'>-</div>-->
-          <button id='story-prev-page' type='button'>Prev</button>
-          <div id='story-current-page-wrapper'><span style="vertical-align:top">Page: </span>
-            <textarea id='story-current-page'></textarea>
-            <span id='story-total-pages' style="vertical-align:top;"> /</span>
-          </div>
-          <!-- <div id='story-next-page'>+</div>-->
-          <button id='story-next-page' type='button'>Next</button>
-        </div>
-      
-      </div>
-    </div>
-
-  </div>
-
-
-
-<input id='simple-story-url' type='hidden' value='{% url storyscape_stills "31" %}'/> 
-<input id='storyscape-url' type='hidden' value='{% url storyscape_get_story "public" %}' /> 
+{% block extra_javascript %}
+	<script type="text/javascript">
+	window.LOAD_STORY_ID = "{{ story.id }}";
+	window.ACTION_CODES = {{ action_codes|jsonify|safe }};
+	window.ACTION_TRIGGER_CODES = {{ action_trigger_codes|jsonify|safe }};
+	</script>
 {% endblock %}
-<!--end of main-content-->
+
+{% block extra_javascript_libraries %}
+	<script type="text/javascript" src="/static/js/backbone.js"></script>
+	<script type="text/javascript" src="/static/js/jquery.actual.js"></script>
+	<script type="text/javascript" src="/static/ui-lightness/jquery-ui-1.10.3.custom.js"></script>
+{% endblock %}
 

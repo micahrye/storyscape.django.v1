@@ -809,3 +809,42 @@ background-color:rgba(0,0,0,0)}
 	display: inline-block;
 	vertical-align: middle;
 }
+
+.story-list {
+	width:400px;
+	padding:0px 30px 30px;
+}
+.story-list .load-story-option {
+	overflow:hidden;
+	white-space: nowrap;
+	text-overflow:ellipsis;
+	display:block;
+	padding:5px 20px;
+	border-radius:5px;
+	margin-bottom:5px;
+	border:1px solid #EEE;
+	background-color:#fafafa;
+	color:#666;
+}
+.story-list .load-story-option:hover {
+	background-color:#f5f5f5;
+	text-decoration:none;
+	margin: -1px 1px 6px -1px;
+	box-shadow: 1px 1px 3px 0px rgba(200,200,200,.5);
+}
+#toast-container {
+	top:60px;
+	font-size:20px;
+}
+#toast-container .toast {
+	padding:10px 60px 10px;
+}
+#toast-container .toast:first-child {
+	border-radius:0 0 5px 5px;
+}
+
+.story-title-display {
+	text-align:center;
+	width: 700px;
+	margin: 0 auto 30px;
+}

@@ -6,6 +6,7 @@ admin.autodiscover()
 
 urlpatterns = patterns('storyscape.views',
 
+    url(r'^edit/(?P<story_id>\d+)/$', 'create_story', name='edit_story'),
     url(r'^create/$', 'create_story', name='create_story'), 
     url(r'^my_stories/$', 'get_user_stories', name='get_user_stories'),
     

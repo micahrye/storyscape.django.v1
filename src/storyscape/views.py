@@ -4,7 +4,7 @@ import random
 import logging 
 from collections import OrderedDict
 
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
@@ -120,6 +120,8 @@ def pmo_to_json(pmo):
                     height = pmo.height,
                     text = pmo.assoc_text,
                     )
+    if pmo.media_object:
+        pmo_json['url'] = settings.MEDIA_URL + pmo.media_object.url
     return pmo_json
 
 
@@ -132,7 +134,7 @@ def story_to_json(story):
         page_json = dict(page_number = page.page_number,
                          page_id = page.id,
                          media_objects = [])
-        for pmo in page.pagemediaobject_set.all():
+        for pmo in page.pagemediaobject_set.select_related('media_object').all():
             page_json['media_objects'].append(pmo_to_json(pmo))
         story_dict['pages'].append(page_json)
     
@@ -149,7 +151,7 @@ def save_story(request):
     
 
 
-    story_id = story_json.get("story-id")
+    story_id = story_json.get("story_id")
     if story_id:
         story = Story.objects.get(id=story_id)
     else:
@@ -178,7 +180,7 @@ def save_story(request):
         page = None
         if page_json.get('page_id'):
             try:
-                page = Page.objects.filter(story=story).get(page_id=page_json.get('page_id'))
+                page = Page.objects.filter(story=story).get(id=page_json.get('page_id'))
             except Page.DoesNotExist:
                 pass
         page = page or Page(story=story)
@@ -339,22 +341,31 @@ def get_user_stories(request):
 def load_story(request):
     user = request.user
     
-    story = Story.objects.get(creator_uid=user.id, id=request.GET.get("id"))    
+    story = Story.objects.get(creator_uid=user.id, id=request.GET.get("story_id"))    
     
     story_json = story_to_json(story)
     
     return HttpResponse(story_json)
 
 @login_required
-def create_story(request):
+def create_story(request, story_id=None):
     
     user = request.user 
+    
+    story= None    
+    if story_id:
+        try:
+            story = Story.objects.get(id=story_id, creator_uid=user.id)
+        except:
+            raise Http404
 
     ml = MediaLibrary.objects.get(user=user)
     media_objects = ml.media_object.filter(Q(format__label='png') | Q(format__label='jpg')).order_by('-id')[:NUM_ITEMS_PER_PAGE]
+
     
     return render_to_response('storyscape/create.html',
                  {'user': request.user, 
+                  'story': story,
                   'show_personal_library': True,
                   "media_objects": media_objects,
                   'action_codes':ACTION_CODES,
@@ -430,5 +441,10 @@ def reader_info(request):
                               {}, 
                               context_instance=RequestContext(request))
 
-def story_preview(request, story_id):    
-    return render_to_response( request, 'story_preview.html', dict(story_id=story_id), context_instance=RequestContext(request) )
+def story_preview(request, story_id):
+    story = Story.objects.get(id=story_id)
+    return render_to_response('storyscape/story_preview.html', 
+                              dict(story=story,
+                                   action_codes=ACTION_CODES,
+                                   action_trigger_codes=ACTION_TRIGGER_CODES),
+                              context_instance=RequestContext(request) )
