@@ -7,12 +7,22 @@
 
 {% block content %}
 	
-	<h1 id="story-title-display" class="story-title-display">{{ story.title|title }}</h1>
-	<div class="preview-options">
-		{% if story.creator_uid == request.user.id %}
-			<a class='btn' href="{% url edit_story story.id %}"><span class="button-icon edit-icon"></span><span>Edit</span></a>
+	<div class="preview-navigation">
+		<a href="{% url stories_library %}">Browse Stories</a>
+		&nbsp;&raquo;&nbsp;
+		{% if from_page == "edit" %}
+		<a href="{% url edit_story story.id %}">Edit</a>
+		&nbsp;&raquo;&nbsp;
+		{% endif %}
+		Preview
+		
+		{% if from_page == "edit" %}
+		<span class="pull-right">
+			<a href="{% url edit_story story.id %}">Back to Edit</a>
+		</span>
 		{% endif %}
 	</div>
+	<h1 id="story-title-display" class="story-title-display">{{ story.title|title }}</h1>
 	<div id='storyscape-container'>
 	 
 		{% spaceless %}

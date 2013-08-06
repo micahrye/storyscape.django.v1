@@ -329,13 +329,10 @@ def get_user_stories(request):
     return HttpResponse(stories_json)
 
 
-@login_required
 @ajax_required
 @require_GET
 def load_story(request):
-    user = request.user
-    
-    story = Story.objects.get(creator_uid=user.id, id=request.GET.get("story_id"))    
+    story = Story.objects.get(id=request.GET.get("story_id"))    
     
     story_json = story_to_json(story)
     
@@ -416,5 +413,6 @@ def story_preview(request, story_id):
     return render_to_response('storyscape/story_preview.html', 
                               dict(story=story,
                                    action_codes=ACTION_CODES,
-                                   action_trigger_codes=ACTION_TRIGGER_CODES),
+                                   action_trigger_codes=ACTION_TRIGGER_CODES,
+                                   from_page=request.GET.get("from","")),
                               context_instance=RequestContext(request) )

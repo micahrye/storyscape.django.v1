@@ -1057,7 +1057,7 @@ StoryScape.initStoryCreation = function() {
 		if ($(this).hasClass("disabled")) {
 			return;
 		}
-		window.location = "/storyscape/preview/"+StoryScape.currentStory.getStoryId()+"/";
+		window.location = "/storyscape/preview/"+StoryScape.currentStory.getStoryId()+"/?from=edit";
 	});
 	
 	StoryScape.onUnload = function() {

@@ -4,10 +4,10 @@
 		{% for story in stories %}
 			<div class="thumbnail-container" data-story-id="{{ story.id }}">
 		    	<div class='image-tags' > 
-		    		{{ story.title|title }}
+		    		<a href="{% url story_preview story.id %}?from=stories">{{ story.title|title }}</a>
 		    	</div>
 				<div class="thumbnail-frame">
-					<a href="{% url story_preview story.id %}">
+					<a href="{% url story_preview story.id %}?from=stories">
 						{% if story.is_published %}
 							<img src='{{ MEDIA_URL }}{{ story.thumb_url }}' class='image-thumbnail' />
 						{% else %}
