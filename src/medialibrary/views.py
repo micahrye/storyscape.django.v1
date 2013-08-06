@@ -1,6 +1,6 @@
 import datetime
 import os
-import commands
+import commands, random, string
 
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
@@ -16,7 +16,7 @@ import simplejson
 
 from tagging.models import TaggedItem, Tag
 
-from medialibrary.models import MediaLibrary, MediaObject, ImageUploadForm2, MediaFormat, MEDIAOBJECT_max_length_name, MediaType
+from medialibrary.models import MediaLibrary, MediaObject, ImageUploadForm, MediaFormat, MEDIAOBJECT_max_length_name, MediaType, DEFAULT_LICENSE
 
 NUM_ITEMS_PER_PAGE = 15
 NUM_TAGS_PER_PAGE = 50
@@ -40,6 +40,24 @@ def toggle_favorite_media_object(request):
         is_favorite = True
     return HttpResponse(simplejson.dumps(dict(is_favorite = is_favorite)))
 
+@ajax_required
+@login_required
+@require_POST
+def toggle_media_object_visibility(request):
+    user = request.user
+    mo_id = request.POST['MEDIA_OBJECT_ID']
+    
+    mo = MediaObject.objects.get(id=mo_id, creator=user)
+    
+    if mo.is_visible():
+        mo.license = DEFAULT_LICENSE
+        is_visible = False
+    else:
+        mo.license = ""
+        is_visible = True
+    mo.save()
+    
+    return HttpResponse(simplejson.dumps(dict(is_visible = is_visible)))
 
 
 def index(request):
@@ -69,7 +87,9 @@ def get_media_objects(request):
         query = query.filter(id__in = favorite_ids)
     elif not get_all_images:
         query = query.filter(creator = request.user)
-    
+    else:
+        query = query.exclude(license = "")
+        
     query = query.filter(original=False).filter(format__label='png').order_by('-id') 
     objs = query.all()
     
@@ -99,12 +119,15 @@ def get_media_objects(request):
                                               content = content)))
 
 
+def generate_id(size=6, chars=string.ascii_uppercase + string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))
+
 @login_required
 @ajax_required
 def image_upload(request):
     
     user = request.user
-    form = ImageUploadForm2()
+    form = ImageUploadForm()
     success = False
     
     if request.method == 'POST':
@@ -118,7 +141,7 @@ def image_upload(request):
         django ImageField does not allow for SVG files b/c of possible malicious 
         code that could be in the svg/xml. Need to consider how to deal with this
         ''' 
-        form = ImageUploadForm2(request.POST, request.FILES, instance=mo)
+        form = ImageUploadForm(request.POST, request.FILES, instance=mo)
         valid = form.is_valid()
         if valid:
             ftype = request.FILES['upload_image'].name[-3:].lower()
@@ -131,7 +154,7 @@ def image_upload(request):
             mo.format = mf
             mo.type = mt
             mo.publisher = 'sodiioo'
-            # mo.url gets set inside form.save(), this way we insure that the 
+            # mo.url gets set inside form.save(), this way we ensure that the 
             # url name is unique sice django takes care of the user uploading files
             # with the same file name by appending an int
             form.save()
@@ -139,6 +162,9 @@ def image_upload(request):
             tags = request.POST['mo_tags'].lower()
             mo.tags = tags
             mo.has_tag = 1
+            
+            if not form.cleaned_data['is_public']:
+                mo.license = ""
             #THIS represents the original image uploaded, need to make a copy for general use. 
             mo.save()
             
@@ -158,15 +184,27 @@ def image_upload(request):
             if not os.path.exists(os.path.split(mod_url)[0]):
                 os.makedirs(os.path.split(mod_url)[0])
             # TODO: should probably use PIL instead of convert from commands
-            cmd = 'convert -resize 300x300 ' + org_url + ' ' + mod_url
+            
+            mod_url = mod_url.replace(settings.MEDIALIBRARY_URL_ROOT, '')
+            i = 0
+            while i < 10 and MediaObject.objects.filter(url = mod_url).count():
+                mod_url = mod_url[:-4] + generate_id() + mod_url[-4:]
+            
+            cmd = 'convert -resize 300x300 ' + org_url + ' ' + settings.MEDIALIBRARY_URL_ROOT + mod_url
             _ = commands.getoutput(cmd)
-            mod_mo.url = mod_url.replace(settings.MEDIALIBRARY_URL_ROOT, '')
+            
+            mod_mo.url = mod_url
+            
+            
+            if not form.cleaned_data['is_public']:
+                mod_mo.license = ""
+            
             mod_mo.save()
             mod_mo.tags = tags
             # add modified image to personal library 
             ml.media_object.add(mod_mo)
             success = True
-            form = ImageUploadForm2()
+            form = ImageUploadForm()
 
     result = {'form':render_to_string('medialibrary/image_upload.html', {'form':form, 'success':success}),
               'success':success}

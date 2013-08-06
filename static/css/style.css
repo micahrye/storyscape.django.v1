@@ -48,6 +48,11 @@ input[type="file"] {
 input[type="text"],input[type="password"]  {
 	width:300px;
 }
+input[type="checkbox"]  {
+	margin-right:300px;
+	vertical-align:middle;
+	margin-bottom:7px;
+}
 label {
 	width:200px;
 	text-align:right;
@@ -256,6 +261,7 @@ form h2.success_message {
 	color:#111;
 	margin:0 5px 10px 0;
 }
+.toggle-visible,
 .toggle-favorite {
 	position:absolute;
 	top:0px;
@@ -270,9 +276,16 @@ form h2.success_message {
 	opacity:0;
 	cursor:pointer;
 }
-.thumbnail-container:hover .toggle-favorite {
-	opacity:.7;
+.toggle-visible {
+	right:auto;
+	left:0;
+	border-radius:0 0 5px 0;
 }
+.thumbnail-container:hover .toggle-visible,
+.thumbnail-container:hover .toggle-favorite {
+	opacity:.8;
+}
+.thumbnail-container .toggle-visible:hover,
 .thumbnail-container .toggle-favorite:hover {
 	opacity:1;
 }
@@ -290,6 +303,18 @@ form h2.success_message {
 	background: url(/static/img/greenstar.png) no-repeat;
 	background-size:35px 35px;
 	background-position:-4px 1px;
+}
+.visible-icon,
+.invisible-icon {
+	width: 25px;
+	height: 25px;
+	display:inline-block;
+	position: relative;
+	background: url(/static/img/private.png) no-repeat;
+	background-size:25px 25px;
+}
+.visible-icon {
+	background-image: url(/static/img/public.png);
 }
 
 .loading-message {
@@ -940,4 +965,7 @@ background-color:rgba(0,0,0,0)}
 	white-space:nowrap;
 	overflow:hidden;
 	text-overflow:ellipsis;
+}
+#create-story-form label.error {
+	display:none;
 }

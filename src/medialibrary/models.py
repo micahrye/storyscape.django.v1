@@ -9,13 +9,15 @@ from django.conf import settings
 import tagging
 from tagging.fields import TagField
 
-from django.forms import ModelForm
+from django.forms import ModelForm, BooleanField
 
 
 # registered with tagging, decleration near end of file.
 
 MEDIAOBJECT_max_length_bytes = 16384
 MEDIAOBJECT_max_length_name = 60
+
+DEFAULT_LICENSE = 'http://web.resource.org/cc/PublicDomain'
 
 def upload_file_to(instance, filename):
     # this way we spread out where images saved, but always in the 
@@ -79,7 +81,7 @@ class MediaObject(models.Model):
     format = models.ForeignKey(MediaFormat, blank=True)
     publisher = models.CharField(max_length=60, default="Sodiioo", blank=True)
     license = models.CharField(max_length=60, blank=True,
-                          default='http://web.resource.org/cc/PublicDomain')
+                          default=DEFAULT_LICENSE)
      
     creator = models.ForeignKey(User, null=True, blank=True)
     creation_datetime = models.DateTimeField('date time of creation')
@@ -91,6 +93,9 @@ class MediaObject(models.Model):
     #tags, this model is registered below with django-tagging
     has_tag = models.IntegerField(blank=True, null=True, default=0)
     mo_tags = TagField(verbose_name = "Image Tags")
+    
+    def is_visible(self):
+        return not self.license
 
 class MediaLibrary(models.Model):
     """
@@ -101,74 +106,26 @@ class MediaLibrary(models.Model):
     user = models.ForeignKey(User)
     media_object = models.ManyToManyField(MediaObject)
 
-
-
-class ImageObject(models.Model):
-    image = models.ImageField(upload_to=upload_file_to,
-                              max_length=60, blank=False, null=True)
-'''
-TODO: need to change this name here and in ImageUploadForm2, 
-also need to change that name, get rid of 2
-'''
-class ImageObject2(models.Model):
-    user = models.ForeignKey(User)
-    image = models.ImageField(upload_to=upload_file_to,
-                              max_length=60, blank=False, null=True)
-
-
-class ImageUploadForm2(ModelForm):
-    
-    def __init__(self, *args, **kwargs):
-        super(ImageUploadForm2, self).__init__(*args, **kwargs)
-        # change display label for form item 'name' 
-        
-    class Meta:
-        model = MediaObject
-        fields = ('upload_image', 'mo_tags', )
-
-    def save(self, *args, **kwargs):
-        
-        # the image gets saved to the MEDIA_ROOT + path defined in upload_to here
-        imgobjectform = super(ImageUploadForm2, self).save(*args, **kwargs)
-        imgobjectform.url = imgobjectform.upload_image.name
-        '''
-        mod_url = org_url = settings.MEDIALIBRARY_URL_ROOT + imgobjectform.url
-        ftype = mod_url[-3:]
-        # create url for modified image. All images should have a png modified copy for use
-        mod_url = mod_url.replace('/org/', '/mod/')
-        if ftype != 'png':
-            mod_url = mod_url.replace('/'+ftype+'/', '/png/')
-            mod_url =  mod_url[:-3] + 'png'
-        
-        # create a modification of the original image that was uploaded. 
-        # recall that svg files not handled by ImageField.
-        results = commands.getoutput('mkdir -p ' + os.path.split(mod_url)[0]) 
-        if (imgobjectform.upload_image.height > 300) or (imgobjectform.upload_image.width > 300): 
-            cmd = 'convert -resize 300x300 ' + org_url + ' ' + mod_url
-            results = commands.getoutput(cmd)
-        else: 
-            cmd = 'convert '  + org_url + ' ' + mod_url
-            results = commands.getoutput(cmd)
-        '''
-        return imgobjectform
-'''
 class ImageUploadForm(ModelForm):
+    
+    is_public = BooleanField(label = "Public", required = False, initial = True)
     
     def __init__(self, *args, **kwargs):
         super(ImageUploadForm, self).__init__(*args, **kwargs)
         # change display label for form item 'name' 
         
     class Meta:
-        model = ImageObject2
-        exclude = ('user', )
+        model = MediaObject
+        fields = ('upload_image', 'mo_tags')
 
     def save(self, *args, **kwargs):
-        user = self.instance
-        upload_image = self.cleaned_data.get('image')
         
         # the image gets saved to the MEDIA_ROOT + path defined in upload_to here
         imgobjectform = super(ImageUploadForm, self).save(*args, **kwargs)
-'''      
+        imgobjectform.url = imgobjectform.upload_image.name
+
+        return imgobjectform
+    
             
 
 try:

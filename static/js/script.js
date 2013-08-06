@@ -224,6 +224,19 @@ StoryScape.initializeMediaLibraryContent = function() {
 			}
 		});
 	});
+	$(".toggle-visible").click(function(e) {
+		e.preventDefault();
+		var $this = $(this);
+		var object_id = $this.parents('.thumbnail-container').data("mediaobject-id");
+		$.ajax({
+			type: "POST",
+			url: '/medialibrary/toggle_visible/',
+			data: {'MEDIA_OBJECT_ID': object_id},
+			success: function() {
+				$this.find('span').toggleClass('hidden');
+			}
+		});
+	});
 	StoryScape.initializePaginator();
 	
 	$(".tag-link").each(function() {
@@ -739,7 +752,7 @@ var Story = Backbone.Model.extend({
 		$('#story-tags').val(this.getTags());
 		$('#create-story-form input, #create-story-form textarea').blur().change();
 		
-		$("#story-controls .btn").removeClass("disabled");
+		$(".story-controls .btn").removeClass("disabled");
 		if (! this.getStoryId()) {
 			$("#publish-story").addClass("disabled");
 			$("#delete-story").addClass("disabled");
@@ -891,6 +904,7 @@ StoryScape.initStoryCreation = function() {
 	}
 	
 	if (window.LOAD_STORY_ID) {
+		StoryScape.currentStory = new Story();
 		StoryScape.loadStory(window.LOAD_STORY_ID);		
 	} else {
 		StoryScape.currentStory = new Story();
@@ -940,7 +954,24 @@ StoryScape.initStoryCreation = function() {
 		StoryScape.currentStory.setTags($(this).val());
 	});
 	
+	jQuery.validator.setDefaults({
+		onkeyup:false,
+		onfocusout: false,
+		onsubmit: false,
+		invalidHandler: function() {},
+		onclick: false,
+		showErrors: function() {},
+	});
+	
 	$("#save-story").click(function() {
+		$("#create-story-form").find(".defaultTextActive").val("");
+		var success = $("#create-story-form").valid();
+		$("#create-story-form").find(".defaultText").blur();
+		if (! success ) {
+			toastr['error']("Cannot save, make sure your story has a title, genre, description, and tags");
+			return;
+		}
+		
 		var data = {'story':JSON.stringify(StoryScape.currentStory.toJSON())};
 		$.ajax("/storyscape/save/",
 			{
