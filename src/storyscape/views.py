@@ -1,5 +1,5 @@
 import commands
-import os, shutil
+import os
 import random
 import logging 
 from collections import OrderedDict
@@ -24,9 +24,9 @@ import simplejson
 from storyscape.models import Story, PageMediaObject, Page
 from storyscape import utilities
 from medialibrary.models import MediaLibrary, MediaObject
+from medialibrary.views import NUM_ITEMS_PER_PAGE
 
 logger = logging.getLogger(__name__)
-NUM_ITEMS_PER_PAGE = 40
 NUM_TAGS_PER_PAGE = 20
 
 ACTION_TRIGGER_CODES = OrderedDict([('Touch', 300),
@@ -125,9 +125,6 @@ def populate_pmo_from_json(pmo_json, z_index, story, page, existing_pmo):
     pmo.page = page
 
     
-    if pmo.media_type == "image":
-        create_download_media(pmo, story)
-        
     pmo.save()
     
     return pmo
@@ -194,15 +191,19 @@ def story_to_json(story):
     
     return simplejson.dumps(story_dict)
 
+def index(request):
+    return render_to_response('public/index.html', 
+                              dict(), 
+                              context_instance=RequestContext(request))
+
 @login_required
 @ajax_required
 @require_POST
 def save_story(request):
 
     user = request.user
-    
+    print request.POST
     story_json = simplejson.loads(request.POST.get("story"))
-    
 
 
     story_id = story_json.get("story_id")
@@ -220,12 +221,8 @@ def save_story(request):
     story.tags = story_json.get("tags","")
     story.creator_name = user.username
     
-    # we're going to make a bunch of thumbnails below, for the sake of cleanliness, delete that directory first
-    file_save_path = story.get_filesave_path()
-    shutil.rmtree(file_save_path)
-            
     # a list of pages, and each page is a list of media objects
-    pages_info = story_json.get("pages-info")
+    pages_info = story_json.get("pages")
 
     page_ids = []
     for page in pages_info:
@@ -260,10 +257,7 @@ def save_story(request):
             populate_pmo_from_json(pmo_json, pmo_number, story, page, existing_pmos.get(pmo_json.get('pagemediaobject_id')))
     
     story.save()
-    
-    # create the thumbnail for this story from the thumbnail images that were created during create_download_media
-    utilities.create_story_thumbnail(story, file_save_path)
-    
+        
     return HttpResponse(simplejson.dumps(dict(success=True,story_id=story.id)))
 
 @login_required
@@ -275,8 +269,20 @@ def publish_story(request):
     story = Story.objects.get(id=request.POST['story_id'])
             
     story.is_published = False 
-    
+
     file_save_path = story.get_filesave_path()
+    
+    utilities.remove_dir_files(file_save_path, []) 
+    
+    pmos = PageMediaObject.objects.filter(page__story = story, media_type='image')
+    
+    for pmo in pmos:
+        print pmo
+        create_download_media(pmo, story)
+        pmo.save()
+    
+    
+    utilities.create_story_thumbnail(story, file_save_path)
     story.save()
     try: 
         utilities.story_to_xml(story, file_save_path)
@@ -296,9 +302,7 @@ def publish_story(request):
         story.is_published = True
     
     story.save()
-    
-    exempt = [story.get_thumbnail_name(), story.get_zip_name()]
-    utilities.remove_dir_files(file_save_path, exempt) 
+
     return HttpResponse(msg)
 
 
@@ -356,7 +360,7 @@ def create_story(request, story_id=None):
     return render_to_response('storyscape/create.html',
                  {'user': request.user, 
                   'story': story,
-                  'show_personal_library': True,
+                  'show_favorites_library': True,
                   "media_objects": media_objects,
                   'action_codes':ACTION_CODES,
                   'action_trigger_codes':ACTION_TRIGGER_CODES},
@@ -373,7 +377,7 @@ def stories_library(request):
 def get_stories(request):
     page_number = int(request.GET.get('PAGE_NUMBER', 1))
     search_term = request.GET.get('SEARCH_TERM', '')
-    get_all = request.GET.get('GET_ALL_IMAGES', 'true') == 'true'
+    get_all = request.GET.get('GET_ALL', 'true') == 'true'
     
     if search_term:
         tag_query = Tag.objects.filter(name__icontains=search_term)
@@ -383,6 +387,8 @@ def get_stories(request):
 
     if request.user.is_authenticated() and not get_all:
         query = query.filter(creator_uid = request.user.id)
+    else:
+        query = query.filter(is_published = True)
     
     objs = query.order_by('-id').all()
     

@@ -2,6 +2,7 @@ PAGE_NAME = window.PAGE_NAME || "";
 StoryScape = window.StoryScape || {};
 
 $(document).ready(function () {
+	StoryScape.initializeDefaultText();
 	switch (PAGE_NAME) {
 		case "CREATE_STORY":
 			StoryScape.initToastr();
@@ -21,6 +22,30 @@ $(document).ready(function () {
 			break;
 	}
 });
+
+
+StoryScape.initializeDefaultText = function() {
+	$(".defaultText").not(".initialized").focus(function(srcc) {
+        if ($(this).hasClass("defaultTextActive")) {
+            $(this).removeClass("defaultTextActive");
+            $(this).val("");
+        }
+    });
+    
+    $(".defaultText").not(".initialized").blur(function() {
+        if (! $(this).val()) {
+            $(this).addClass("defaultTextActive");
+            $(this).val($(this).attr("title"));
+        }
+    });
+    
+    $(".defaultText").not(".initialized").blur().addClass("initialized");
+    
+    $("form").not(".initialized").submit(function() {
+    	$(this).find(".defaultTextActive").val("").removeClass("defaultTextActive");
+    	$(this).addClass("initialized");
+    });
+}
 
 /******************** Pagination Helper Functions ****************************************/
 
@@ -134,10 +159,15 @@ StoryScape.initGenericLibrary = function() {
 		e.preventDefault();
 		$('.image-type-nav').parents("ul").find("li").removeClass("active");
 		$(this).parent().addClass("active");
-		StoryScape.ALL_IMAGES = $(this).attr("id") == "all-images-nav";
+		StoryScape.SHOW_ALL_OBJECTS = $(this).attr("id") == "all-images-nav";
+		StoryScape.SHOW_FAVORITES = $(this).attr("id") == "favorite-images-nav";
 		StoryScape.reloadPaginatedContent();
 	})
-	$(".active .image-type-nav").click();
+	if ($(".active .image-type-nav").length) {
+		$(".active .image-type-nav").click();
+	} else {
+		StoryScape.reloadPaginatedContent();
+	}
 	
 	var onSearchChange = function() {
 		if ($(this).val()) {
@@ -170,7 +200,7 @@ StoryScape.initImageLibrary = function() {
 	});
 	StoryScape.reloadPaginatedContent = function() {
 		StoryScape.SEARCH_TERM = $("#search-field").val();
-		var data = {'SEARCH_TERM': StoryScape.SEARCH_TERM, 'GET_ALL_IMAGES': StoryScape.ALL_IMAGES || false};
+		var data = {'SEARCH_TERM': StoryScape.SEARCH_TERM, 'GET_ALL': StoryScape.SHOW_ALL_OBJECTS || false, 'GET_FAVORITES': StoryScape.SHOW_FAVORITES || false};
 		StoryScape.loadPaginatedContent("/medialibrary/get_media_objects", StoryScape.CURRENT_PAGE, StoryScape.initializeMediaLibraryContent, data);
 	}
 	
@@ -241,7 +271,7 @@ StoryScape.initStoryLibrary = function() {
 	
 	StoryScape.reloadPaginatedContent = function() {
 		StoryScape.SEARCH_TERM = $("#search-field").val();
-		var data = {'SEARCH_TERM': StoryScape.SEARCH_TERM, 'GET_ALL_STORIES': StoryScape.ALL_IMAGES || false};
+		var data = {'SEARCH_TERM': StoryScape.SEARCH_TERM, 'GET_ALL': StoryScape.SHOW_ALL_OBJECTS || false};
 		StoryScape.loadPaginatedContent("/storyscape/stories/", StoryScape.CURRENT_PAGE, StoryScape.initializeMediaLibraryContent, data);
 	}
 	StoryScape.initGenericLibrary();
@@ -259,7 +289,6 @@ var MediaObject = Backbone.Model.extend({
 
 		var scaleX = $('#builder-pane').innerWidth() / StoryScape.DEVICE_WIDTH,
 			scaleY = $('#builder-pane').innerHeight() / StoryScape.DEVICE_HEIGHT;
-
 		if (attributes) {
 			if (attributes.x) {
 				attributes.x *= scaleX;
@@ -271,7 +300,7 @@ var MediaObject = Backbone.Model.extend({
 				attributes.width *= scaleX;
 			}
 			if (attributes.height) {
-				attributes.height *= scaleX;
+				attributes.height *= scaleY;
 			}
 			if (attributes.font_size) {
 				attributes.font_size *= Math.ceil(attributes.font_size * scaleX);
@@ -283,7 +312,7 @@ var MediaObject = Backbone.Model.extend({
 	},
 
 	toJSON: function(){
-		var json = this.attributes;
+		var json = _.clone(this.attributes);
 		
 		var scaleX = StoryScape.DEVICE_WIDTH / $('#builder-pane').innerWidth(),
 			scaleY = StoryScape.DEVICE_HEIGHT / $('#builder-pane').innerHeight();
@@ -397,17 +426,25 @@ var Page = Backbone.Model.extend({
 
 	constructor : function ( attributes, options ) {
 		
-		if (attributes && attributes.media_objects) {
-			this.objects = new MediaObjectSet(attributes.media_objects);
-		} else {
-			this.objects = new MediaObjectSet();
+		if (attributes) {
+			this.objectsAttributes = attributes.media_objects;
 		}
+		this
 		Backbone.Model.apply( this, arguments );
 		
 	},
 	initialize: function() {
 		this.width = $('#builder-pane').innerWidth();
 		this.height = $('#builder-pane').innerHeight();
+
+		this.set("media_objects", new MediaObjectSet(this.objectsAttributes ? this.objectsAttributes : undefined));
+		
+		var onChildChange = function() {
+			this.trigger("change");
+		};
+		this.get("media_objects").bind("add", _.bind(onChildChange, this));
+		this.get("media_objects").bind("change", _.bind(onChildChange, this));
+		this.get("media_objects").bind("remove", _.bind(onChildChange, this));
 		
 		$('body').mousedown(_.bind(function(e) {
 			if ($(e.target).hasClass("control-panel") || $(e.target).parents().hasClass("control-panel") || $(e.target).parents().hasClass("sp-container")) {
@@ -429,22 +466,10 @@ var Page = Backbone.Model.extend({
 			$('.story-menu').removeClass("hidden");
 		})
 		
-		for (var i = 0; i < this.objects.models.length; i++) {
-			this.createElForMediaObject(this.objects.models[i]);
+		for (var i = 0; i < this.get("media_objects").models.length; i++) {
+			this.createElForMediaObject(this.get("media_objects").models[i]);
 		}
 	},
-	
-	toJSON: function(){
-		  var json = this.attributes;
-		  var objectlist = [];
-		  for (var i = 0; i < this.objects.models.length; i++) {
-			  objectlist.push(this.objects.models[i].toJSON());
-		  }
-		  json['media_objects'] = objectlist;
-		  return json;
-
-	},
-
 	
 	addImage: function(objectId, objectURL) {
 		var $img = $('<img src="' + objectURL + '">');
@@ -459,7 +484,7 @@ var Page = Backbone.Model.extend({
 		mediaObject.setObjectId(objectId);
 		mediaObject.setURL(objectURL);
 
-		this.objects.add(mediaObject);
+		this.get("media_objects").add(mediaObject);
 		
 		this.createElForMediaObject(mediaObject);
 	},
@@ -478,7 +503,7 @@ var Page = Backbone.Model.extend({
 		mediaObject.setColor("#000");
 		mediaObject.setText("Add Your Text Here");
 		
-		this.objects.add(mediaObject);
+		this.get("media_objects").add(mediaObject);
 		
 		this.createElForMediaObject(mediaObject);
 	},
@@ -508,7 +533,7 @@ var Page = Backbone.Model.extend({
 		$el.data("mediaObject", mediaObject);
 		
 		$removeLink.click(_.bind(function() {
-			this.objects.remove(mediaObject);
+			this.get("media_objects").remove(mediaObject);
 			$el.remove();
 		}, this));
 		
@@ -541,66 +566,69 @@ var Page = Backbone.Model.extend({
 		});
 		
 		$('.context-sensitive-menu').addClass("hidden");
-		$('.image-menu').removeClass("hidden");
-		$('.image-menu .btn').unbind('click');
-		$('.image-menu select').unbind('change');
-		$('.image-menu #color-picker').unbind('change');
+		$('.object-menu').removeClass("hidden");
+		$('.object-menu .btn').unbind('click');
+		$('.object-menu select').unbind('change');
+		$('.object-menu #color-picker').unbind('change');
+		$('.object-menu').removeClass("image-menu").removeClass("text-menu");
 		
 		if (mediaObject.getType() == "image") {
-			$('.image-menu .settings-title').html("Image Settings");
-			$('.image-menu .text-settings').css('display', 'none');
+			$('.object-menu .settings-title').html("Image Settings");
+			$('.object-menu .text-settings').css('display', 'none');
+			$('.object-menu').addClass("image-menu");
 		} else {
-			$('.image-menu .settings-title').html("Text Settings");
-			$('.image-menu .text-settings').css('display', 'block');
+			$('.object-menu').addClass("text-menu");
+			$('.object-menu .settings-title').html("Text Settings");
+			$('.object-menu .text-settings').css('display', 'block');
 			
-			$('.image-menu #font-size').val(mediaObject.getActionCode() || "18");
-			$('.image-menu #font-size').change(function() {
+			$('.object-menu #font-size').val(mediaObject.getActionCode() || "18").blur();
+			$('.object-menu #font-size').change(function() {
 				mediaObject.setFontSize( $(this).val());
 				$el.css("font-size", $(this).val()+"px");
 			});
 			
-			$('.image-menu #color-picker').val(mediaObject.getColor() || "#000000");
-			$('.image-menu #color-picker').change(function() {
+			$('.object-menu #color-picker').val(mediaObject.getColor() || "#000000");
+			$('.object-menu #color-picker').change(function() {
 				mediaObject.setColor( $(this).val());
 				$el.css("color", $(this).val());
 			});
 		}
 		
-		$('.image-menu #send-forward').click(function() {
+		$('.object-menu #send-forward').click(function() {
 			StoryScape.currentStory.getCurrentPage().sendForward($el);
 		});
-		$('.image-menu #send-backward').click(function() {
+		$('.object-menu #send-backward').click(function() {
 			StoryScape.currentStory.getCurrentPage().sendBackward($el);
 		});
-		$('.image-menu #send-front').click(function() {
+		$('.object-menu #send-front').click(function() {
 			StoryScape.currentStory.getCurrentPage().sendToFront($el);
 		});
-		$('.image-menu #send-back').click(function() {
+		$('.object-menu #send-back').click(function() {
 			StoryScape.currentStory.getCurrentPage().sendToBack($el);
 		});
 		
-		$('.image-menu #animation-select').val(mediaObject.getActionCode() || 0);
-		$('.image-menu #animation-select').change(function() {
+		$('.object-menu #animation-select').val(mediaObject.getActionCode() || 0);
+		$('.object-menu #animation-select').change(function() {
 			mediaObject.setActionCode($(this).val());
 			mediaObject.setActionTriggerCode($('#animation-trigger-select').val());
 		});
-		$('.image-menu #animation-trigger-select').val(mediaObject.getActionTriggerCode() || ACTION_TRIGGER_CODES['Touch']);
-		$('.image-menu #animation-trigger-select').change(function() {
+		$('.object-menu #animation-trigger-select').val(mediaObject.getActionTriggerCode() || ACTION_TRIGGER_CODES['Touch']);
+		$('.object-menu #animation-trigger-select').change(function() {
 			mediaObject.setActionCode($("#animation-select").val());
 			mediaObject.setActionTriggerCode($(this).val());
 		});
-		$('.image-menu #preview-animation-button').click(function() {
+		$('.object-menu #preview-animation-button').click(function() {
 			StoryScape.animateElement($el, mediaObject.getActionCode());
 		});
 		
-		$('.image-menu #goto-on-touch-select').val(mediaObject.getPageOnTouch() || '');
-		$('.image-menu #goto-on-touch-select').change(function() {
+		$('.object-menu #goto-on-touch-select').val(mediaObject.getPageOnTouch() || '');
+		$('.object-menu #goto-on-touch-select').change(function() {
 			mediaObject.setPageOnTouch($(this).val());
 		});
 	},
 	
 	createAllElements: function() {
-		this.objects.forEach(_.bind(function(mediaObject) {
+		this.get("media_objects").forEach(_.bind(function(mediaObject) {
 			this.createElForMediaObject(mediaObject);
 		}, this));
 	},
@@ -608,29 +636,38 @@ var Page = Backbone.Model.extend({
 	sendForward: function($el) {
         $el.next().after($el);
         var mediaObject = $el.data("mediaObject");
-        var index = this.objects.indexOf(mediaObject);
-        this.objects.remove(mediaObject);
-        this.objects.add(mediaObject, {at: index+1});
+        var index = this.get("media_objects").indexOf(mediaObject);
+        this.get("media_objects").remove(mediaObject);
+        this.get("media_objects").add(mediaObject, {at: index+1});
 	},
 	sendBackward: function($el) {
 		$el.prev().before($el);
         var mediaObject = $el.data("mediaObject");
-        var index = this.objects.indexOf(mediaObject);
-        this.objects.remove(mediaObject);
-        this.objects.add(mediaObject, {at: index-1});
+        var index = this.get("media_objects").indexOf(mediaObject);
+        this.get("media_objects").remove(mediaObject);
+        this.get("media_objects").add(mediaObject, {at: index-1});
 	},
 	sendToFront: function($el) {
 		$('#builder-pane').append($el);
         var mediaObject = $el.data("mediaObject");
-        this.objects.remove(mediaObject);
-        this.objects.push(mediaObject);
+        this.get("media_objects").remove(mediaObject);
+        this.get("media_objects").push(mediaObject);
 	},
 	sendToBack: function($el) {
 		$('#builder-pane').prepend($el);
         var mediaObject = $el.data("mediaObject");
-        this.objects.remove(mediaObject);
-        this.objects.unshift(mediaObject);
+        this.get("media_objects").remove(mediaObject);
+        this.get("media_objects").unshift(mediaObject);
 	},
+	
+	toJSON: function() {
+    	var json = _.clone(this.attributes);
+
+    	json.media_objects = this.get('media_objects').toJSON();
+
+    	return json;
+	},
+
 
 });
 
@@ -653,18 +690,26 @@ var Story = Backbone.Model.extend({
 	constructor : function ( attributes, options ) {
 		
 		if (attributes) {
-			this.pages = new PageSet(attributes.pages);
-		} else {
-			this.pages = new PageSet();
+			this.pageAttributes = attributes.pages;
+			this.tagAttribute = attributes.tags;
 		}
-		
 		Backbone.Model.apply( this, arguments );
 		
-		if (attributes) {
-			this.setTags(attributes.tags.join(" "));
-		}
 	},
 	initialize: function() {
+		this.set("pages", new PageSet(this.pageAttributes ? this.pageAttributes : undefined));
+		
+		var onChildChange = function() {
+			this.trigger("change");
+		};
+		this.get("pages").bind("add", _.bind(onChildChange, this));
+		this.get("pages").bind("change", _.bind(onChildChange, this));
+		this.get("pages").bind("remove", _.bind(onChildChange, this));
+		
+		if (this.tagAttribute) {
+			this.setTags(this.tagAttribute.join(" "));
+		}
+		
 	    this.bind("change-num-pages", function() {
 	    	$("#story-total-pages").html(this.getNumPages());
 	    	$("#goto-on-touch-select").empty();
@@ -680,17 +725,19 @@ var Story = Backbone.Model.extend({
 			this.getCurrentPage().createAllElements();
 	    });
 
-		if (! this.pages.length) {
+		if (! this.get("pages").length) {
 			this.insertNewPage();
 		}
 		this.currentIndex = 0;
 		this.trigger("change-current-page");
 		this.trigger("change-num-pages");
 		
+		$('#create-story-form input, #create-story-form textarea').removeClass("defaultTextActive");
 		$('#story-title').val(this.getTitle());
 		$('#story-genre').val(this.getGenre());
 		$('#story-description').val(this.getDescription());
 		$('#story-tags').val(this.getTags());
+		$('#create-story-form input, #create-story-form textarea').blur().change();
 		
 		$("#story-controls .btn").removeClass("disabled");
 		if (! this.getStoryId()) {
@@ -699,18 +746,24 @@ var Story = Backbone.Model.extend({
 			$("#preview-story").addClass("disabled");
 		}
 		
+		
+		this.bind("beensaved", function() {
+			$(window).unbind("beforeunload", StoryScape.onUnload);
+		})
+		this.bind("change", function() {
+			$(window).unbind("beforeunload", StoryScape.onUnload);
+			$(window).bind('beforeunload', StoryScape.onUnload);
+		})
+		this.trigger("beensaved");
+		
 	},
 	
-	toJSON: function(){
-		  var json = _.clone(this.attributes);
-		  var pagelist = [];
-		  for (var i = 0; i < this.pages.models.length; i++) {
-			  pagelist.push(this.pages.models[i].toJSON());
-		  }
-		  json['pages-info'] = pagelist;
-		  
-		  return {'story': JSON.stringify(json)};
+	toJSON: function() {
+    	var json = _.clone(this.attributes);
 
+    	json.pages = this.get('pages').toJSON();
+
+    	return json;
 	},
 	
 	getIndex: function() {
@@ -718,12 +771,12 @@ var Story = Backbone.Model.extend({
 	},
 	
 	getCurrentPage: function() {
-		return this.pages.at(this.currentIndex);
+		return this.get("pages").at(this.currentIndex);
 	},
 	
 	changePage: function(index) {
 		index = _.max([index, 0]);
-		index = _.min([index, this.pages.length - 1]);
+		index = _.min([index, this.get("pages").length - 1]);
 		if (this.getCurrentPage()) {
 			this.getCurrentPage().trigger("deselect");
 		}
@@ -735,18 +788,19 @@ var Story = Backbone.Model.extend({
 	},
 	
 	getNumPages: function() {
-		return this.pages.length;
+		return this.get("pages").length;
 	},
 
 	insertNewPage: function() {
-		this.pages.add(new Page(), {at: this.getIndex() + 1});
+		this.get("pages").add(new Page(), {at: this.getIndex() + 1});
+		this.changePage(this.getIndex() + 1);
 		this.trigger("change-num-pages");
 	},
 
 	removePage: function() {
 		this.getCurrentPage().trigger("deselect");
-		this.pages.remove(this.pages.at(this.currentIndex));
-		if (this.pages.length <= 0) {
+		this.get("pages").remove(this.get("pages").at(this.currentIndex));
+		if (this.get("pages").length <= 0) {
 			this.insertNewPage();
 		}
 		this.trigger("change-num-pages");
@@ -870,9 +924,12 @@ StoryScape.initStoryCreation = function() {
 		$('html,body').animate({scrollTop: top}, 300);
 	});
 
-	$('#story-title').change(function(e) {
+	var titleChange = function(e) {
 		StoryScape.currentStory.setTitle($(this).val());
-	});
+		$('#story-title-display').html($(this).val() || $(this).attr("title"));
+	};
+	$('#story-title').keyup(titleChange).change(titleChange).change();
+	
 	$('#story-description').change(function(e) {
 		StoryScape.currentStory.setDescription($(this).val());
 	});
@@ -884,7 +941,7 @@ StoryScape.initStoryCreation = function() {
 	});
 	
 	$("#save-story").click(function() {
-		var data = StoryScape.currentStory.toJSON();
+		var data = {'story':JSON.stringify(StoryScape.currentStory.toJSON())};
 		$.ajax("/storyscape/save/",
 			{
 				type: "POST",
@@ -896,7 +953,11 @@ StoryScape.initStoryCreation = function() {
 					$("#publish-story").removeClass("disabled");
 					$("#delete-story").removeClass("disabled");
 					$("#preview-story").removeClass("disabled");
+					StoryScape.currentStory.trigger("beensaved");
 				},
+				error:function() {
+					toastr["error"]("Failed to save story. Please try again later.");
+				}
 		});
 	});
 
@@ -917,6 +978,9 @@ StoryScape.initStoryCreation = function() {
 					StoryScape.currentStory = new Story();
 					toastr["success"]("Story successfully deleted!");
 				},
+				error:function() {
+					toastr["error"]("Failed to delete story. Please try again later.");
+				}
 		});
 	});
 	$("#publish-story").click(function() {
@@ -930,6 +994,9 @@ StoryScape.initStoryCreation = function() {
 				success:function(response) {
 					toastr["success"]("Story successfully published to the app!");
 				},
+				error:function() {
+					toastr["error"]("Failed to publish story. Please try again later.");
+				}
 		});
 	});
 	$("#open-story").click(function() {
@@ -949,6 +1016,9 @@ StoryScape.initStoryCreation = function() {
 						$.fancybox.close();
 					});
 				},
+				error:function() {
+					toastr["error"]("Failed to open story. Please try again later.");
+				}
 		});
 	});
 	
@@ -958,6 +1028,10 @@ StoryScape.initStoryCreation = function() {
 		}
 		window.location = "/storyscape/preview/"+StoryScape.currentStory.getStoryId()+"/";
 	});
+	
+	StoryScape.onUnload = function() {
+		return "You have unsaved changes! Are you sure you want to navigate away?";
+	}
 
 
 	/**
@@ -993,6 +1067,9 @@ StoryScape.loadStory = function(storyId, showToast) {
 					toastr["success"]("Story loaded!");
 				}
 			},
+			error:function() {
+				toastr["error"]("Failed to open story. Please try again later.");
+			}
 	});
 }
 

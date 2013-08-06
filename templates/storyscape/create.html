@@ -7,32 +7,55 @@
 
 {% block content %}
 	<div class="header-with-nav">
+		<h1 id="story-title-display" data-default-title="New Story"></h1>
+	{% comment %}
 		{% spaceless %}
-			<h1>StoryScape</h1>
-			<div class="pull-right" id="story-controls">
-				<button class="btn" id="delete-story"><span class="button-icon delete-icon"></span><span>Delete</span></button>
-				<span class="button-divider"></span>
-				<button class="btn" id="new-story"><span class="button-icon new-icon"></span><span>New</span></button>
-				<button class="btn" id="open-story"><span class="button-icon open-icon"></span><span>Open</span></button>
-				<span class="button-divider"></span>
-				<button class="btn" id="save-story"><span class="button-icon save-icon"></span><span>Save</span></button>
-				<button class="btn" id="publish-story"><span class="button-icon publish-icon"></span><span>Publish</span></button>
-				<button class="btn" id="preview-story"><span class="button-icon preview-icon"></span><span>Preview</span></button>
+			<div class="navbar story-controls" id="story-controls">
+				<div class="navbar-inner">
+					<div class="pull-left">
+					</div>
+					<div class="pull-right">
+					</div>
+				</div>
 			</div>
 		{% endspaceless %}
+	{% endcomment %}
 	</div>
 	
 	<div id='storyscape-container'>
 	 
 		{% spaceless %}
-			<div> 
+			<div class="full-width-content"> 
 				<div id='builder-pane-container' class="builder-pane-container"> 
 					<div class="builder-container left">
+						<div id='control-panel' class='control-panel story-controls'>
+							<div class="story-menu">
+								<div class="navbar">
+									<div class="navbar-inner builder-topnav">
+										<h4>Story Controls</h4>
+									</div>
+								</div>
+								<button class="btn" id="save-story"><span class="button-icon save-icon"></span><span>Save</span></button>
+								<button class="btn" id="preview-story"><span class="button-icon preview-icon"></span><span>Preview</span></button>
+								<button class="btn" id="publish-story"><span class="button-icon publish-icon"></span><span>Publish</span></button>
+								<hr>
+								<button class="btn" id="new-story"><span class="button-icon new-icon"></span><span>New</span></button>
+								<button class="btn" id="open-story"><span class="button-icon open-icon"></span><span>Open</span></button>
+								<hr>
+								<button class="btn" id="delete-story"><span class="button-icon delete-icon"></span><span>Delete</span></button>
+							</div>
+						</div>
+					</div>
+					<div class="builder-container middle">
 						<div id="builder-pane" class="builder-pane">
 						</div>
 						{% include "storyscape/storyline_navigation.html" with creating=1 %} 
 					</div>
-					<div class="builder-container right">
+					<div class="builder-container right context-controls">
+								<div class="top-buttons">
+									<button class="btn" id="add-text"><span class="button-icon big text-icon"></span><span>Add Text</span></button>
+									<button class="btn" id="add-image"><span class="button-icon big image-icon"></span><span>Add Image</span></button>
+								</div>
 						<div id='control-panel' class='control-panel'>
 							<div class="context-sensitive-menu story-menu">
 								<div class="navbar">
@@ -44,28 +67,23 @@
 								<form id='create-story-form' class='story-toolbar-item' >
 								  	<div>
 								    	<label>Title</label>
-								    	<input type="text" name="title" id="story-title">
+								    	<input type="text" class="defaultText" name="title" id="story-title" title="New Story">
 								  	</div>
 								  	<div>
 									    <label>Genre</label>
-									    <input type="text" name="genre" id="story-genre">
+									    <input type="text" class="defaultText" name="genre" id="story-genre" title="Enter Genre">
 								  	</div>
 								  	<div>
 									    <label>Description</label>
-									    <textarea name="description" id="story-description"></textarea>
+									    <textarea name="description" class="defaultText" id="story-description" title="Enter Description"></textarea>
 								  	</div>
 								  	<div>
 									    <label>Tags</label>
-									    <textarea name="tags" id="story-tags"></textarea>
+									    <textarea name="tags" class="defaultText" id="story-tags" title="Enter Story Tags"></textarea>
 								  	</div>
 								</form>
-								<hr>
-								<div class="buttons">
-									<button class="btn" id="add-text">Add Text<span class="button-icon big text-icon"></span></button>
-									<button class="btn" id="add-image">Add Image<span class="button-icon big image-icon"></span></button>
-								</div>
 							</div>
-							<div class="context-sensitive-menu image-menu hidden">
+							<div class="context-sensitive-menu object-menu hidden">
 								<div class="navbar">
 									<div class="navbar-inner builder-topnav">
 										<h4 class="settings-title"></h4>
@@ -84,10 +102,10 @@
 									<hr>
 								</div>
 								<div class="buttons">
-									<button class="btn" id="send-forward">Forward<span class="button-icon big forward-icon"></span></button>
-									<button class="btn" id="send-backward">Backward<span class="button-icon big backward-icon"></span></button>
-									<button class="btn" id="send-front">To Front<span class="button-icon big front-icon"></span></button>
-									<button class="btn" id="send-back">To Back<span class="button-icon big back-icon"></span></button>
+									<button class="btn" id="send-forward"><span class="button-icon big forward-icon"></span><span>Forward</span></button>
+									<button class="btn" id="send-backward"><span class="button-icon big backward-icon"></span><span>Backward</span></button>
+									<button class="btn" id="send-front"><span class="button-icon big front-icon"></span><span>To Front</span></button>
+									<button class="btn" id="send-back"><span class="button-icon big back-icon"></span><span>To Back</span></button>
 								</div>
 								<hr>
 								<div class="animation-section">

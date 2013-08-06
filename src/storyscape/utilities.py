@@ -14,7 +14,7 @@ def story_to_xml(story, save_path):
     file_name = save_path + title + '.xml'
     try:
         f = open(file_name, 'w')
-    except IOError as e: raise
+    except IOError: raise
 
     #If file w/ this name already exists, will be overwritten.
     f.write('<?xml version="1.0"?> \n')
@@ -44,7 +44,6 @@ def story_to_xml(story, save_path):
             font_color = pmo.font_color
             font_size = str(pmo.font_size)
             if mo_type == 'image':
-                m = pmo.media_object
                 url = pmo.download_media_url
                 start = url.rfind('/') + 1
                 url = url[start:]
@@ -118,17 +117,12 @@ def create_story_thumbnail(story, save_path):
             comp_info += filename+' '+ ' -geometry +'+str(pmo.xcoor)+'+'+str(pmo.ycoor)+' -composite '
 
     cmd1 = 'convert -size 1280x800 xc:white ' + comp_info + save_path + 'thumbnail_icon_large.png'
-    print cmd1
-    result = commands.getoutput( cmd1 )
-    print result
-    # if all good need to resize this
-
-    # NOTE: this will preserve aspetc ratio and result in image 
+    commands.getoutput( cmd1 )
+    
+    # NOTE: this will preserve aspect ratio and result in image 
     # that has an x or y no greater than STORY_THUMBNAIL_SIZE
     cmd2 = 'convert -resize {0}x{0} {1}thumbnail_icon_large.png {1}thumbnail_icon.png'.format(STORY_THUMBNAIL_SIZE, save_path)
-    print cmd2
     result = commands.getoutput( cmd2 )
-    print result
     
     # if result not '' then some type of error 
     return True if result == '' else False 

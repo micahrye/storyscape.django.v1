@@ -3,9 +3,16 @@
 	<div id="thumbbox" class="thumbnail-group">
 		{% for story in stories %}
 			<div class="thumbnail-container" data-story-id="{{ story.id }}">
+		    	<div class='image-tags' > 
+		    		{{ story.title|title }}
+		    	</div>
 				<div class="thumbnail-frame">
 					<a href="{% url story_preview story.id %}">
-						<img src='{{ MEDIA_URL }}{{ story.thumb_url }}' class='image-thumbnail' />
+						{% if story.is_published %}
+							<img src='{{ MEDIA_URL }}{{ story.thumb_url }}' class='image-thumbnail' />
+						{% else %}
+							<img src='{{ STATIC_URL }}img/book.png' class='image-thumbnail' />
+						{% endif %}
 					</a>
 				</div>
 		    	<div class='image-tags' > 

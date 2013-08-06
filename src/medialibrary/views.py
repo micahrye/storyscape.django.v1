@@ -52,7 +52,8 @@ def index(request):
 def get_media_objects(request):
     page_number = int(request.GET.get('PAGE_NUMBER', 1))
     search_term = request.GET.get('SEARCH_TERM', '')
-    get_all_images = request.GET.get('GET_ALL_IMAGES', 'true') == 'true'
+    get_all_images = request.GET.get('GET_ALL', 'true') == 'true'
+    get_favorites = request.GET.get('GET_FAVORITES', 'true') == 'true'
     need_add_buttons = request.GET.get('NEED_ADD_BUTTONS', 'true') == 'true'
     
     if search_term:
@@ -62,10 +63,12 @@ def get_media_objects(request):
         query = MediaObject.objects
 
     library = None
-    if not get_all_images:
+    if get_favorites:
         library = MediaLibrary.objects.get(user=request.user)
         favorite_ids = library.media_object.values_list('id', flat=True)
         query = query.filter(id__in = favorite_ids)
+    elif not get_all_images:
+        query = query.filter(creator = request.user)
     
     query = query.filter(original=False).filter(format__label='png').order_by('-id') 
     objs = query.all()
@@ -75,6 +78,7 @@ def get_media_objects(request):
     page_number = min(paginator.num_pages, page_number)
     objs = paginator.page(page_number).object_list
     
+    favorited_ids = []
     if request.user.is_authenticated():
         object_ids = [obj.id for obj in objs]
         
