@@ -1177,7 +1177,7 @@ StoryScape.animateElement = function($el,code) {
 	        $el.effect('bounce', {times:1, distance:smallHopDistance, direction:'up'}, speed);
 			break; 
 		case ACTION_CODES["Spin"]:
-			$el.transition({rotate: "360deg"}, animationTime);
+			$el.transition({rotate: "0deg"},0).transition({rotate: "360deg"}, animationTime);
 			break; 
 		case ACTION_CODES["Drag"]:
 			toastr["info"]("This element will be draggable in the app.");

@@ -865,7 +865,6 @@ background-color:rgba(0,0,0,0)}
 	margin-right:20px;
 	margin-bottom:0;
 }
-
 .media-overlay {
 	display:none;
 	position:absolute;
@@ -879,6 +878,10 @@ background-color:rgba(0,0,0,0)}
 	font-weight:300;
 	line-height:28px;
 	padding-top:40px;
+	color:#666;
+}
+.media-overlay:hover {
+	color:#666;
 }
 .thumbnail-frame:hover .media-overlay.display-on-hover {
 	display:block;
