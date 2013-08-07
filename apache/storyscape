@@ -1,0 +1,32 @@
+<VirtualHost *:80>
+    ServerName storyscape.media.mit.edu
+    DocumentRoot /var/www/storyscape/
+    LogLevel debug
+
+    Alias /robots.txt /var/www/storyscape/static/robots.txt
+    Alias /favicon.ico /var/www/storyscape/static/favicon.ico
+
+    Alias /media /var/www/storyscape/media/
+    Alias /static /var/www/storyscape/static/
+
+     <Directory /var/www/storyscape/static>
+         Order deny,allow
+         Allow from all
+     </Directory>
+
+     <Directory /var/www/storyscape/media>
+        Order deny,allow
+        Allow from all
+    </Directory>
+
+    <Directory /var/www/storyscape>
+        Order allow,deny
+        Deny from all
+    </Directory>
+
+    WSGIDaemonProcess storyscape.media.mit.edu processes=2 threads=15 display-name=%{GROUP}
+    WSGIProcessGroup storyscape.media.mit.edu
+
+    WSGIScriptAlias / /var/www/storyscape/storyscape.django/apache/storyscape.wsgi
+
+</VirtualHost>
