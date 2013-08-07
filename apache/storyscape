@@ -19,12 +19,7 @@
         Allow from all
     </Directory>
 
-    <Directory /var/www/storyscape>
-        Order allow,deny
-        Deny from all
-    </Directory>
-
-    WSGIDaemonProcess storyscape.media.mit.edu processes=2 threads=15 display-name=%{GROUP}
+    WSGIDaemonProcess storyscape.media.mit.edu processes=2 threads=15 display-name=%{GROUP} python-path=/var/www/storyscape/storyscape.django/src:/var/www/storyscape/storyscape-env/lib/python2.7/site-packages
     WSGIProcessGroup storyscape.media.mit.edu
 
     WSGIScriptAlias / /var/www/storyscape/storyscape.django/apache/storyscape.wsgi
