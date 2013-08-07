@@ -10,6 +10,7 @@ $(document).ready(function () {
 			StoryScape.initImageLibrary();
 			break;
 		case "IMAGE_LIBRARY":
+			StoryScape.initImageLibraryPage();
 			StoryScape.initImageLibrary();
 			break;
 		case "PREVIEW_STORY":
@@ -183,6 +184,20 @@ StoryScape.initGenericLibrary = function() {
 	})
 }
 
+
+/**
+ * Called on init on the image library page only
+ */
+StoryScape.initImageLibraryPage = function() {
+	StoryScape.pageSpecificMediaInitialize = function() {
+		$(".thumbnail-frame").click(function(e) {
+			if (e.target == this) {
+				$(this).find("img").trigger("click");
+			}
+		});
+	}
+}
+
 /**
  * Called on init on any page that has a media library
  */
@@ -203,15 +218,6 @@ StoryScape.initImageLibrary = function() {
 		var data = {'SEARCH_TERM': StoryScape.SEARCH_TERM, 'GET_ALL': StoryScape.SHOW_ALL_OBJECTS || false, 'GET_FAVORITES': StoryScape.SHOW_FAVORITES || false};
 		StoryScape.loadPaginatedContent("/medialibrary/get_media_objects", StoryScape.CURRENT_PAGE, StoryScape.initializeMediaLibraryContent, data);
 	}
-	
-	StoryScape.pageSpecificMediaInitialize = function() {
-		$(".thumbnail-frame").click(function(e) {
-			if (e.target == this) {
-				$(this).find("img").trigger("click");
-			}
-		});
-	}
-
 	
 	StoryScape.initGenericLibrary();
 }
