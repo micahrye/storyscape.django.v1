@@ -5,7 +5,7 @@ import os
 filepath = os.path.dirname(os.path.realpath(__file__))
 
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -14,15 +14,15 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
+# TODO: we're pretty lax on security here. so here's the db password!
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': '/opt/storyscape.db',                      # Or path to database file if using sqlite3.
-        # The following settings are not used with sqlite3:
-        'USER': '',
-        'PASSWORD': '',
-        'HOST': '',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
-        'PORT': '',                      # Set to empty string for default.
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'storyscape',
+        'USER': 'storyscape',
+        'PASSWORD': 'fs$WY@$UHwrg0h34t',
+        'HOST': 'localhost',
+        'PORT': '',
     }
 }
 
@@ -55,7 +55,7 @@ USE_TZ = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/var/www/example.com/media/"
-MEDIA_ROOT = ''
+MEDIA_ROOT = '/var/www/storyscape/media/'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
@@ -66,7 +66,7 @@ MEDIA_URL = '/media/'
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/var/www/example.com/static/"
-STATIC_ROOT = ''
+STATIC_ROOT = '/var/www/storyscape/static/'
 
 # URL prefix for static files.
 # Example: "http://example.com/static/", "http://static.example.com/"
@@ -153,24 +153,46 @@ INSTALLED_APPS = (
 # more details on how to customize your logging configuration.
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': False,
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse'
-        }
+    'disable_existing_loggers': True,
+    'formatters': {
+        'standard': {
+            'format' : "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+            'datefmt' : "%d/%b/%Y %H:%M:%S"
+        },
     },
     'handlers': {
-        'mail_admins': {
-            'level': 'ERROR',
-            'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
-        }
+        'null': {
+            'level':'DEBUG',
+            'class':'django.utils.log.NullHandler',
+        },
+        'logfile': {
+            'level':'DEBUG',
+            'class':'logging.handlers.RotatingFileHandler',
+            'filename': "/var/log/storyscape/storyscape.log",
+            'maxBytes': 50000,
+            'backupCount': 2,
+            'formatter': 'standard',
+        },
+        'console':{
+            'level':'INFO',
+            'class':'logging.StreamHandler',
+            'formatter': 'standard'
+        },
     },
     'loggers': {
-        'django.request': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
+        'django': {
+            'handlers':['logfile'],
             'propagate': True,
+            'level':'ERROR',
+        },
+        'django.db.backends': {
+            'handlers': ['logfile'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        '': {
+            'handlers': ['logfile'],
+            'level': 'WARN',
         },
     }
 }
@@ -180,8 +202,8 @@ LOGGING = {
 MEDIAOBJECT_UPLOAD_URL_ROOT_DIR_NAME = 'sodiioo-mo'
 SODIIOO_SITE_URL = 'http://storyscape.media.mit.edu'
 STORYSCAPE_STORIES_URL_ROOT = 'storyscape_media/stories/'
-STORYSCAPE_IMAGE_URL_ROOT = os.path.join(filepath, '../media/storyscape_media/stories/')
-MEDIALIBRARY_URL_ROOT = os.path.join(filepath, '../media/') 
+STORYSCAPE_IMAGE_URL_ROOT = '/var/www/storyscape/media/storyscape_media/stories/'
+MEDIALIBRARY_URL_ROOT = '/var/www/storyscape/media/'
 
 
 # REGISTRATION VARIABLES
