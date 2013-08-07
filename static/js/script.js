@@ -204,6 +204,15 @@ StoryScape.initImageLibrary = function() {
 		StoryScape.loadPaginatedContent("/medialibrary/get_media_objects", StoryScape.CURRENT_PAGE, StoryScape.initializeMediaLibraryContent, data);
 	}
 	
+	StoryScape.pageSpecificMediaInitialize = function() {
+		$(".thumbnail-frame").click(function(e) {
+			if (e.target == this) {
+				$(this).find("img").trigger("click");
+			}
+		});
+	}
+
+	
 	StoryScape.initGenericLibrary();
 }
 
@@ -1080,7 +1089,8 @@ StoryScape.initStoryCreation = function() {
 		}, function() {
 			$(this).find('.media-overlay').css("display","none");
 		});
-		$('.add-button').click(function() {
+		$('.add-button').click(function(e) {
+			e.stopPropagation();
 			$(this).parent().find('.been-added').css("display","block");
 			$(this).css("display","none");
 			var $container = $(this).parents('.thumbnail-container');
