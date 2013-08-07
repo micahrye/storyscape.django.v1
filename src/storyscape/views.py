@@ -29,8 +29,8 @@ from medialibrary.views import NUM_ITEMS_PER_PAGE
 logger = logging.getLogger(__name__)
 NUM_TAGS_PER_PAGE = 20
 
-ACTION_TRIGGER_CODES = OrderedDict([('Touch', 300),
-                        ('Sound', 301),
+ACTION_TRIGGER_CODES = OrderedDict([('Touch', 1),
+                        ('Sound', 2),
                        ])
 
 ACTION_CODES = OrderedDict([('Fade Out',105),
@@ -113,7 +113,6 @@ def populate_pmo_from_json(pmo_json, z_index, story, page, existing_pmo):
     pmo.goto_page = pmo_json.get('page_on_touch',pmo.goto_page)
     if not pmo.goto_page:
         pmo.goto_page = -1
-    pmo.trigger_reaction_on = pmo_json.get('action_trigger_code',pmo.trigger_reaction_on)
     pmo.reaction_object = 'none' 
     pmo.xcoor = pmo_json.get('x',pmo.xcoor)
     pmo.ycoor = pmo_json.get('y',pmo.ycoor)

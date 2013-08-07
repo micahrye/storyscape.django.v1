@@ -85,11 +85,12 @@ label {
 	position:relative;
 }
 a {
-	color:#99CC00;
-	font-weight:400;
+	color:#669900;
+	font-weight:300;
 }
 a:hover {
-	color:#669900;
+	color:#558800;
+	text-decoration:none;
 }
 
 header {
@@ -247,7 +248,7 @@ ul.errorlist li {
 }
 .thumbnail-frame .image-thumbnail {
 	max-height:168px;
-	max-width:100%;
+	width:100%;
 	display:inline-block;
 }
 .image-tags {
@@ -274,6 +275,7 @@ ul.errorlist li {
 	font-weight:700;
 	color:#111;
 	margin:0 5px 10px 0;
+	white-space: nowrap;
 }
 .toggle-visible,
 .toggle-favorite {
@@ -626,6 +628,9 @@ background-color:rgba(0,0,0,0)}
 	color:inherit;
 	font-size:inherit;
 }
+.media-object > div {
+	cursor:default;
+}
 .remove-media-object {
 	position:absolute;
 	top:5px;
@@ -875,6 +880,10 @@ background-color:rgba(0,0,0,0)}
 	line-height:28px;
 	padding-top:40px;
 }
+.thumbnail-frame:hover .media-overlay.display-on-hover {
+	display:block;
+}
+.button.media-overlay,
 .add-button.media-overlay {
 	cursor:pointer;	
 }
@@ -893,6 +902,9 @@ background-color:rgba(0,0,0,0)}
 }
 .edit-icon {
 	background-image:url("/static/img/edit.png");
+}
+.read-story-icon {
+	background-image:url("/static/img/read_story.png");
 }
 
 .header-with-nav .btn {
@@ -990,4 +1002,9 @@ background-color:rgba(0,0,0,0)}
 }
 #create-story-form label.error {
 	display:none;
+}
+.story-thumbnail-title {
+	white-space:nowrap;
+	overflow:hidden;
+	text-overflow:ellipsis;
 }

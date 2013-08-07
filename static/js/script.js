@@ -316,7 +316,7 @@ var MediaObject = Backbone.Model.extend({
 				attributes.height *= scaleY;
 			}
 			if (attributes.font_size) {
-				attributes.font_size *= Math.ceil(attributes.font_size * scaleX);
+				attributes.font_size = Math.ceil(attributes.font_size * scaleY);
 			}
 		}
 		
@@ -336,7 +336,7 @@ var MediaObject = Backbone.Model.extend({
 		json.height *= scaleY;
 		  
 		if (json.font_size) {
-			json.font_size = Math.floor(json.font_size * scaleX);
+			json.font_size = Math.floor(json.font_size * scaleY);
 		}
 		  
 		return json;
@@ -524,7 +524,13 @@ var Page = Backbone.Model.extend({
 	createElForMediaObject: function(mediaObject) {
 		var $el = $('<div class="media-object"></div>');
 		if (mediaObject.getType() == "text") {
-			var $textArea = $('<textarea>' + mediaObject.getText() + '</textarea>');
+			var $textArea;
+			
+			if (window.IS_PREVIEW_MODE) {
+				$textArea = $('<div>' + mediaObject.getText() + '</div>');
+			} else {
+				$textArea = $('<textarea>' + mediaObject.getText() + '</textarea>');
+			}
 			$el.append($textArea);
 			$el.css({
 				'font-size': mediaObject.getFontSize(),
@@ -1070,7 +1076,7 @@ StoryScape.initStoryCreation = function() {
 	 */
 	StoryScape.pageSpecificMediaInitialize = function() {
 		$(".thumbnail-frame").hover(function() {
-			$(this).find('.add-button').css("display","block");
+			$(this).find('.media-overlay').css("display","");
 		}, function() {
 			$(this).find('.media-overlay').css("display","none");
 		});

@@ -3,16 +3,18 @@
 	<div id="thumbbox" class="thumbnail-group">
 		{% for story in stories %}
 			<div class="thumbnail-container" data-story-id="{{ story.id }}">
-		    	<div class='image-tags' > 
+		    	<div class='image-tags story-thumbnail-title' > 
 		    		<a href="{% url story_preview story.id %}?from=stories">{{ story.title|title }}</a>
 		    	</div>
 				<div class="thumbnail-frame">
-					<a href="{% url story_preview story.id %}?from=stories">
-						{% if story.is_published %}
-							<img src='{{ MEDIA_URL }}{{ story.thumb_url }}' class='image-thumbnail' />
-						{% else %}
-							<img src='{{ STATIC_URL }}img/book.png' class='image-thumbnail' />
-						{% endif %}
+					{% if story.is_published %}
+						<img src='{{ MEDIA_URL }}{{ story.thumb_url }}' class='image-thumbnail' />
+					{% else %}
+						<img src='{{ STATIC_URL }}img/book.png' class='image-thumbnail' />
+					{% endif %}
+					<a href="{% url story_preview story.id %}?from=stories" class="media-overlay button display-on-hover">
+						<span class="icon read-story-icon"></span>
+						Preview Story
 					</a>
 				</div>
 		    	<div class='image-tags' > 

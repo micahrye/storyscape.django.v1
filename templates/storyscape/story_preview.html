@@ -16,9 +16,9 @@
 		{% endif %}
 		Preview
 		
-		{% if from_page == "edit" %}
+		{% if story.creator_uid == request.user.id %}
 		<span class="pull-right">
-			<a href="{% url edit_story story.id %}">Back to Edit</a>
+			<a href="{% url edit_story story.id %}">Edit Story</a>
 		</span>
 		{% endif %}
 	</div>
@@ -52,6 +52,8 @@
 	window.LOAD_STORY_ID = "{{ story.id }}";
 	window.ACTION_CODES = {{ action_codes|jsonify|safe }};
 	window.ACTION_TRIGGER_CODES = {{ action_trigger_codes|jsonify|safe }};
+	
+	window.IS_PREVIEW_MODE = true;
 	</script>
 {% endblock %}
 
