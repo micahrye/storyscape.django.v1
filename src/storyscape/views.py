@@ -184,7 +184,7 @@ def story_to_json(story):
         page_json = dict(page_number = page.page_number,
                          page_id = page.id,
                          media_objects = [])
-        for pmo in page.pagemediaobject_set.select_related('media_object').all():
+        for pmo in page.pagemediaobject_set.select_related('media_object').order_by("z_index").all():
             page_json['media_objects'].append(pmo_to_json(pmo))
         story_dict['pages'].append(page_json)
     
