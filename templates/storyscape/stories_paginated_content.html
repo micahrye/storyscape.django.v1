@@ -2,7 +2,7 @@
 	{% spaceless %}
 	<div id="thumbbox" class="thumbnail-group">
 		{% for story in stories %}
-			<div class="thumbnail-container" data-story-id="{{ story.id }}">
+			<div class="thumbnail-container story-thumbnail" data-story-id="{{ story.id }}">
 		    	<div class='image-tags story-thumbnail-title' > 
 		    		<a href="{% url story_preview story.id %}?from=stories">{{ story.title|title }}</a>
 		    	</div>

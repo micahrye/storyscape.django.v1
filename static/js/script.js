@@ -3,6 +3,17 @@ StoryScape = window.StoryScape || {};
 
 $(document).ready(function () {
 	StoryScape.initializeDefaultText();
+	
+	/** fancybox is pretty lame and wants to take away scrollbars by default. don't let it. **/
+	$.extend($.fancybox.defaults, {
+		helpers:  {
+		    overlay: {
+		        locked: false
+		    }
+		}
+	});
+
+	
 	switch (PAGE_NAME) {
 		case "CREATE_STORY":
 			StoryScape.initToastr();
@@ -22,6 +33,7 @@ $(document).ready(function () {
 		default:
 			break;
 	}
+	
 });
 
 

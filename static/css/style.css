@@ -76,6 +76,7 @@ label {
 	background-color:#fff;
 	padding:80px 80px 100px;
 	box-shadow: 0px 0px 15px 2px #aaa;
+	-moz-box-sizing:border-box;
 	box-sizing:border-box;
 }
 .full-width-content {
@@ -115,6 +116,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f799cc00', e
 }
 .fancybox-margin header {
 	padding-right: 15px;
+	-moz-box-sizing:border-box;
 	box-sizing: border-box;
 }
 header a {
@@ -226,7 +228,6 @@ ul.errorlist li {
 }
 
 .thumbnail-group {
-	text-align:center;
 	margin-right:-13px;
 }
 .thumbnail-container {
@@ -248,13 +249,17 @@ ul.errorlist li {
 	line-height:160px;
 	position:relative;
 	width:100%;
+	-moz-box-sizing:border-box;
 	box-sizing:border-box;
 	cursor:pointer;
 }
 .thumbnail-frame .image-thumbnail {
 	max-height:168px;
-	width:100%;
+	max-width:100%;
 	display:inline-block;
+}
+.story-thumbnail .thumbnail-frame .image-thumbnail {
+	width:100%;
 }
 .image-tags {
 	padding:0px 0px;
@@ -523,7 +528,9 @@ background-color:rgba(0,0,0,0)}
 	width: 50px;
 }
 .paginated-content {
-	padding:0 30px;
+	text-align: left;
+	margin: 0 auto;
+	width: 1052px;
 }
 
 .navbar {
@@ -655,6 +662,7 @@ background-color:rgba(0,0,0,0)}
 	text-align:center;
 	margin-top:10px;
 	padding:0 10px 20px;
+	-moz-box-sizing:border-box;
 	box-sizing:border-box;
 }
 .story-current-page-wrapper {
