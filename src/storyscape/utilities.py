@@ -139,6 +139,8 @@ def create_story_zip(story, save_path):
 def remove_dir_files(dir_path, exempt=[]): 
 # dir_path should have ending '/'
 # exempt is a list of files that should not be removed 
+    if not os.path.exists(dir_path): 
+        return
     dl = os.listdir(dir_path)
     for f in dl:
         if not f in exempt:
