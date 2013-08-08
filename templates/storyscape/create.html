@@ -7,19 +7,8 @@
 
 {% block content %}
 	<div class="header-with-nav">
-		<h1 id="story-title-display" data-default-title="New Story"></h1>
-	{% comment %}
-		{% spaceless %}
-			<div class="navbar story-controls" id="story-controls">
-				<div class="navbar-inner">
-					<div class="pull-left">
-					</div>
-					<div class="pull-right">
-					</div>
-				</div>
-			</div>
-		{% endspaceless %}
-	{% endcomment %}
+		<h1 id="story-title-display" class="create-story-title-display" data-default-title="New Story"></h1>
+		<div class="unsaved-message" id="unsaved-message">[Unsaved]</div>
 	</div>
 	
 	<div id='storyscape-container'>
@@ -158,6 +147,7 @@
 	window.NEED_ADD_BUTTONS = true;
 	window.ACTION_CODES = {{ action_codes|jsonify|safe }};
 	window.ACTION_TRIGGER_CODES = {{ action_trigger_codes|jsonify|safe }};
+	window.USERNAME = "{{ request.user.username }}";
 	</script>
 {% endblock %}
 

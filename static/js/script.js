@@ -548,6 +548,11 @@ var Page = Backbone.Model.extend({
 		this.createElForMediaObject(mediaObject);
 	},
 	
+	addMediaObject: function(mediaObject) {
+		this.get("media_objects").add(mediaObject);
+		this.createElForMediaObject(mediaObject);
+	},
+	
 	createElForMediaObject: function(mediaObject) {
 		var $el = $('<div class="media-object"></div>');
 		if (mediaObject.getType() == "text") {
@@ -627,7 +632,7 @@ var Page = Backbone.Model.extend({
 			$('.object-menu .settings-title').html("Text Settings");
 			$('.object-menu .text-settings').css('display', 'block');
 			
-			$('.object-menu #font-size').val(mediaObject.getActionCode() || "18").blur();
+			$('.object-menu #font-size').val("" + mediaObject.getFontSize() || "18").blur();
 			$('.object-menu #font-size').change(function() {
 				mediaObject.setFontSize( $(this).val());
 				$el.css("font-size", $(this).val()+"px");
@@ -772,7 +777,7 @@ var Story = Backbone.Model.extend({
 	    });
 
 		if (! this.get("pages").length) {
-			this.insertNewPage();
+			this.initializeNewStory();
 		}
 		this.currentIndex = 0;
 		this.trigger("change-current-page");
@@ -795,13 +800,49 @@ var Story = Backbone.Model.extend({
 		
 		this.bind("beensaved", function() {
 			$(window).unbind("beforeunload", StoryScape.onUnload);
+			$("#unsaved-message").css("display","none");
+			console.log("none");
 		})
 		this.bind("change", function() {
 			$(window).unbind("beforeunload", StoryScape.onUnload);
 			$(window).bind('beforeunload', StoryScape.onUnload);
+			$("#unsaved-message").css("display","inline-block");
+			console.log("inline");
 		})
 		this.trigger("beensaved");
 		
+	},
+	
+	initializeNewStory: function() {
+		this.insertNewPage();
+		var page = this.getCurrentPage();
+		var scaleY = StoryScape.DEVICE_HEIGHT / $('#builder-pane').innerHeight();
+		var mo = new MediaObject({'font_size':58 * scaleY,
+									'x':230,
+									'y':180,
+									'text':'[New Story Title]',
+									'color':'#111',
+									'type':'text',
+		});
+		page.addMediaObject(mo);
+		mo = new MediaObject({'font_size':24 * scaleY,
+					'x':40,
+					'y':400,
+					'width':1600,
+					'text':'[This is where you can put a nice description of your story]',
+					'color':'#444',
+					'type':'text',
+		});
+		page.addMediaObject(mo);
+		mo = new MediaObject({'font_size':28 * scaleY,
+					'x':100,
+					'y':630,
+					'width':1600,
+					'text':'By: [' + window.USERNAME + ']',
+					'color':'#333',
+					'type':'text',
+		});
+		page.addMediaObject(mo);
 	},
 	
 	toJSON: function() {
@@ -976,6 +1017,7 @@ StoryScape.initStoryCreation = function() {
 		$('#story-title-display').html($(this).val() || $(this).attr("title"));
 	};
 	$('#story-title').keyup(titleChange).change(titleChange).change();
+	StoryScape.currentStory.trigger("beensaved");
 	
 	$('#story-description').change(function(e) {
 		StoryScape.currentStory.setDescription($(this).val());

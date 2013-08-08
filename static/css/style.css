@@ -922,9 +922,6 @@ background-color:rgba(0,0,0,0)}
 	background-image:url("/static/img/read_story.png");
 }
 
-.header-with-nav .btn {
-	margin-right: 10px;
-}
 .button-divider {
 	width: 1px;
 	height: 36px;
@@ -1009,11 +1006,19 @@ background-color:rgba(0,0,0,0)}
 	font-size:16px !important;
 	line-height:25px !important;
 }
-#story-title-display {
-	display:block;
+.create-story-title-display {
+	display:inline-block;
 	white-space:nowrap;
 	overflow:hidden;
 	text-overflow:ellipsis;
+	max-width:900px;
+	vertical-align:baseline;
+	margin-right:10px;
+}
+.unsaved-message {
+	vertical-align:baseline;
+	font-size:24px;
+	display:none;
 }
 #create-story-form label.error {
 	display:none;
