@@ -48,6 +48,10 @@ def toggle_media_object_visibility(request):
     mo_id = request.POST['MEDIA_OBJECT_ID']
     
     mo = MediaObject.objects.get(id=mo_id, creator=user)
+
+    # when you save an MediaObject, the tagging library clears the tags. this is a hack to get around that stupid behavior.
+    tags = Tag.objects.get_for_object(mo)
+    tag_string = ",".join(['"{0}"'.format(tag.name) for tag in tags])
     
     if mo.is_visible():
         mo.license = DEFAULT_LICENSE
@@ -56,6 +60,8 @@ def toggle_media_object_visibility(request):
         mo.license = ""
         is_visible = True
     mo.save()
+    
+    Tag.objects.update_tags(mo, tag_string)
     
     return HttpResponse(simplejson.dumps(dict(is_visible = is_visible)))
 
