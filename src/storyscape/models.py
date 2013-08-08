@@ -162,3 +162,12 @@ try:
     tagging.register(Story)
 except tagging.AlreadyRegistered:
     pass
+
+class StoryDownload(models.Model):
+    '''
+    used to track story downloads, for metrics and whatnot
+    '''
+    story = models.ForeignKey(Story)
+    user = models.ForeignKey(User, null=True)
+    device_id = models.CharField(max_length=20)
+    download_time = models.DateTimeField(auto_now_add = True)

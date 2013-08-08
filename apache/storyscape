@@ -2,6 +2,9 @@
     ServerName storyscape.media.mit.edu
     DocumentRoot /var/www/storyscape/
     LogLevel debug
+    
+    XSendFile on
+    XSendFilePath /var/www/storyscape/media/
 
     Alias /robots.txt /var/www/storyscape/static/robots.txt
     Alias /favicon.ico /var/www/storyscape/static/favicon.ico

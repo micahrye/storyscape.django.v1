@@ -47,7 +47,6 @@ class Migration(SchemaMigration):
             'avatar_type': ('django.db.models.fields.CharField', [], {'default': "'n'", 'max_length': '1'}),
             'bronze': ('django.db.models.fields.SmallIntegerField', [], {'default': '0'}),
             'consecutive_days_visit_count': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
-            'country': ('django_countries.fields.CountryField', [], {'max_length': '2', 'blank': 'True'}),
             'date_joined': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'date_of_birth': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
             'display_tag_filter_strategy': ('django.db.models.fields.SmallIntegerField', [], {'default': '0'}),

@@ -21,7 +21,7 @@ from django.conf import settings
 from tagging.models import TaggedItem, Tag
 import simplejson
 
-from storyscape.models import Story, PageMediaObject, Page
+from storyscape.models import Story, PageMediaObject, Page, StoryDownload
 from storyscape import utilities
 from medialibrary.models import MediaLibrary, MediaObject
 from medialibrary.views import NUM_ITEMS_PER_PAGE
@@ -191,6 +191,9 @@ def story_to_json(story):
     return simplejson.dumps(story_dict)
 
 def index(request):
+    '''
+    Public splash page
+    '''
     return render_to_response('public/index.html', 
                               dict(), 
                               context_instance=RequestContext(request))
@@ -199,6 +202,9 @@ def index(request):
 @ajax_required
 @require_POST
 def save_story(request):
+    '''
+    Called from the Create page
+    '''
 
     user = request.user
     print request.POST
@@ -263,6 +269,10 @@ def save_story(request):
 @ajax_required
 @require_POST
 def publish_story(request):
+    '''
+    Called from the create page
+    '''
+    
     msg = 'something unhelpful went wrong'
     
     story = Story.objects.get(id=request.POST['story_id'])
@@ -309,6 +319,10 @@ def publish_story(request):
 @ajax_required
 @require_POST
 def delete_story(request):
+    '''
+    Called from the create page
+    '''
+    
     story_id = request.POST.get('story_id')
     story = Story.objects.get(id=story_id)
     story.delete()
@@ -319,6 +333,10 @@ def delete_story(request):
 @ajax_required
 @require_GET
 def get_user_stories(request):
+    '''
+    Called from the create page when loading a new story
+    '''
+    
     user = request.user
     
     stories = Story.objects.filter(users=user).filter(creator_uid=user.id).order_by('creation_datetime')    
@@ -331,6 +349,10 @@ def get_user_stories(request):
 @ajax_required
 @require_GET
 def load_story(request):
+    '''
+    Called from the create page
+    '''
+    
     story = Story.objects.get(id=request.GET.get("story_id"))    
     
     story_json = story_to_json(story)
@@ -339,6 +361,9 @@ def load_story(request):
 
 @login_required
 def create_story(request, story_id=None):
+    '''
+    Called from the create page to save a story. contrary to the name, can be used to save an existing story. um, sorry.
+    '''
     
     user = request.user 
     
@@ -363,6 +388,9 @@ def create_story(request, story_id=None):
                  context_instance=RequestContext(request))
 
 def stories_library(request):
+    '''
+    A list of all the stories
+    '''
     return render_to_response('storyscape/stories_library.html', 
                               dict(), 
                               context_instance=RequestContext(request))
@@ -371,6 +399,10 @@ def stories_library(request):
 @ajax_required
 @require_GET
 def get_stories(request):
+    '''
+    Called from the stories library
+    '''
+    
     page_number = int(request.GET.get('PAGE_NUMBER', 1))
     search_term = request.GET.get('SEARCH_TERM', '')
     get_all = request.GET.get('GET_ALL', 'true') == 'true'
@@ -403,11 +435,18 @@ def get_stories(request):
     
 
 def reader_info(request):
+    '''
+    A static page with information about the reader
+    '''
     return render_to_response('storyscape/about_reader.html', 
                               {}, 
                               context_instance=RequestContext(request))
 
 def story_preview(request, story_id):
+    '''
+    A page that lets you preview a story
+    '''
+    
     story = Story.objects.get(id=story_id)
     return render_to_response('storyscape/story_preview.html', 
                               dict(story=story,
@@ -415,3 +454,29 @@ def story_preview(request, story_id):
                                    action_trigger_codes=ACTION_TRIGGER_CODES,
                                    from_page=request.GET.get("from","")),
                               context_instance=RequestContext(request) )
+
+
+@require_GET
+def download_story(request):
+    '''
+    Used to log downloads of story zips
+    '''
+    
+    story_id = request.GET.get("story_id")
+    user_id = request.GET.get("user_id")
+    device_id = request.GET.get("device_id","")
+    
+    story = Story.objects.get(id=story_id)
+    
+    story_download = StoryDownload(device_id = device_id,
+                                   user_id = user_id,
+                                   story = story)
+    story_download.save()
+    
+    
+    path = os.path.join(story.get_filesave_path(), story.get_zip_name())
+    
+    response = HttpResponse()
+    response['Content-Type'] = ''
+    response['X-Sendfile'] = (os.path.join(settings.MEDIA_ROOT, path)).encode('utf-8')
+    return response

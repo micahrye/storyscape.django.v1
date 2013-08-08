@@ -8,91 +8,20 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'Story'
-        db.create_table('storyscape_story', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('creator_uid', self.gf('django.db.models.fields.IntegerField')()),
-            ('creator_name', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('is_published', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('creation_datetime', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('pub_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('title', self.gf('django.db.models.fields.CharField')(max_length=100)),
-            ('genre', self.gf('django.db.models.fields.CharField')(max_length=100)),
-            ('description', self.gf('django.db.models.fields.CharField')(max_length=16384)),
-        ))
-        db.send_create_signal('storyscape', ['Story'])
-
-        # Adding M2M table for field users on 'Story'
-        db.create_table('storyscape_story_users', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('story', models.ForeignKey(orm['storyscape.story'], null=False)),
-            ('user', models.ForeignKey(orm['auth.user'], null=False))
-        ))
-        db.create_unique('storyscape_story_users', ['story_id', 'user_id'])
-
-        # Adding model 'Page'
-        db.create_table('storyscape_page', (
+        # Adding model 'StoryDownload'
+        db.create_table('storyscape_storydownload', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('story', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['storyscape.Story'])),
-            ('page_number', self.gf('django.db.models.fields.IntegerField')()),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], null=True)),
+            ('device_id', self.gf('django.db.models.fields.CharField')(max_length=20)),
+            ('download_time', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
         ))
-        db.send_create_signal('storyscape', ['Page'])
-
-        # Adding model 'PageMediaObject'
-        db.create_table('storyscape_pagemediaobject', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('media_object', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['medialibrary.MediaObject'], null=True)),
-            ('page', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['storyscape.Page'])),
-            ('xcoor', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('ycoor', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('width', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('z_index', self.gf('django.db.models.fields.IntegerField')(default=0, null=True, blank=True)),
-            ('height', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('anime_code', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('animate_on', self.gf('django.db.models.fields.IntegerField')(default=0, blank=True)),
-            ('assoc_text', self.gf('django.db.models.fields.CharField')(max_length=16384, null=True, blank=True)),
-            ('media_type', self.gf('django.db.models.fields.CharField')(default='image', max_length=5, null=True, blank=True)),
-            ('font_style', self.gf('django.db.models.fields.CharField')(default='sans_serif', max_length=60, null=True, blank=True)),
-            ('font_size', self.gf('django.db.models.fields.IntegerField')(default=48, null=True, blank=True)),
-            ('font_color', self.gf('django.db.models.fields.CharField')(default='#000000', max_length=10, null=True, blank=True)),
-            ('download_media_url', self.gf('django.db.models.fields.CharField')(max_length=255, unique=True, null=True, blank=True)),
-        ))
-        db.send_create_signal('storyscape', ['PageMediaObject'])
-
-        # Adding model 'StoryLibrary'
-        db.create_table('storyscape_storylibrary', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
-        ))
-        db.send_create_signal('storyscape', ['StoryLibrary'])
-
-        # Adding M2M table for field stories on 'StoryLibrary'
-        db.create_table('storyscape_storylibrary_stories', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('storylibrary', models.ForeignKey(orm['storyscape.storylibrary'], null=False)),
-            ('story', models.ForeignKey(orm['storyscape.story'], null=False))
-        ))
-        db.create_unique('storyscape_storylibrary_stories', ['storylibrary_id', 'story_id'])
+        db.send_create_signal('storyscape', ['StoryDownload'])
 
 
     def backwards(self, orm):
-        # Deleting model 'Story'
-        db.delete_table('storyscape_story')
-
-        # Removing M2M table for field users on 'Story'
-        db.delete_table('storyscape_story_users')
-
-        # Deleting model 'Page'
-        db.delete_table('storyscape_page')
-
-        # Deleting model 'PageMediaObject'
-        db.delete_table('storyscape_pagemediaobject')
-
-        # Deleting model 'StoryLibrary'
-        db.delete_table('storyscape_storylibrary')
-
-        # Removing M2M table for field stories on 'StoryLibrary'
-        db.delete_table('storyscape_storylibrary_stories')
+        # Deleting model 'StoryDownload'
+        db.delete_table('storyscape_storydownload')
 
 
     models = {
@@ -109,51 +38,22 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
         },
-                      'auth.user': {
+        'auth.user': {
             'Meta': {'object_name': 'User'},
-            'about': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'avatar_type': ('django.db.models.fields.CharField', [], {'default': "'n'", 'max_length': '1'}),
-            'bronze': ('django.db.models.fields.SmallIntegerField', [], {'default': '0'}),
-            'consecutive_days_visit_count': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'date_joined': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'date_of_birth': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
-            'display_tag_filter_strategy': ('django.db.models.fields.SmallIntegerField', [], {'default': '0'}),
             'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
-            'email_isvalid': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'email_key': ('django.db.models.fields.CharField', [], {'max_length': '32', 'null': 'True'}),
-            'email_signature': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'email_tag_filter_strategy': ('django.db.models.fields.SmallIntegerField', [], {'default': '1'}),
             'first_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'gold': ('django.db.models.fields.SmallIntegerField', [], {'default': '0'}),
-            'gravatar': ('django.db.models.fields.CharField', [], {'max_length': '32'}),
             'groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Group']", 'symmetrical': 'False', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'ignored_tags': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'interesting_tags': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'is_fake': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'is_staff': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'is_superuser': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'last_login': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'last_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'last_seen': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'location': ('django.db.models.fields.CharField', [], {'max_length': '100', 'blank': 'True'}),
-            'new_response_count': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'questions_per_page': ('django.db.models.fields.SmallIntegerField', [], {'default': '10'}),
-            'real_name': ('django.db.models.fields.CharField', [], {'max_length': '100', 'blank': 'True'}),
-            'reputation': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'}),
-            'seen_response_count': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
-            'show_country': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'show_marked_tags': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'silver': ('django.db.models.fields.SmallIntegerField', [], {'default': '0'}),
-            'status': ('django.db.models.fields.CharField', [], {'default': "'w'", 'max_length': '2'}),
-            'subscribed_tags': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'}),
-            'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),
-            'website': ('django.db.models.fields.URLField', [], {'max_length': '200', 'blank': 'True'})
+            'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'})
         },
-
         'contenttypes.contenttype': {
             'Meta': {'ordering': "('name',)", 'unique_together': "(('app_label', 'model'),)", 'object_name': 'ContentType', 'db_table': "'django_content_type'"},
             'app_label': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
@@ -176,6 +76,7 @@ class Migration(SchemaMigration):
             'license': ('django.db.models.fields.CharField', [], {'default': "'http://web.resource.org/cc/PublicDomain'", 'max_length': '60', 'blank': 'True'}),
             'mo_tags': ('tagging.fields.TagField', [], {}),
             'name': ('django.db.models.fields.CharField', [], {'default': "'imagefile'", 'max_length': '60', 'blank': 'True'}),
+            'original': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'publisher': ('django.db.models.fields.CharField', [], {'default': "'Sodiioo'", 'max_length': '60', 'blank': 'True'}),
             'related': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'related_rel_+'", 'blank': 'True', 'to': "orm['medialibrary.MediaObject']"}),
             'type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['medialibrary.MediaType']", 'blank': 'True'}),
@@ -202,11 +103,14 @@ class Migration(SchemaMigration):
             'font_color': ('django.db.models.fields.CharField', [], {'default': "'#000000'", 'max_length': '10', 'null': 'True', 'blank': 'True'}),
             'font_size': ('django.db.models.fields.IntegerField', [], {'default': '48', 'null': 'True', 'blank': 'True'}),
             'font_style': ('django.db.models.fields.CharField', [], {'default': "'sans_serif'", 'max_length': '60', 'null': 'True', 'blank': 'True'}),
+            'goto_page': ('django.db.models.fields.IntegerField', [], {'default': '-1', 'blank': 'True'}),
             'height': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'media_object': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['medialibrary.MediaObject']", 'null': 'True'}),
             'media_type': ('django.db.models.fields.CharField', [], {'default': "'image'", 'max_length': '5', 'null': 'True', 'blank': 'True'}),
             'page': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['storyscape.Page']"}),
+            'reaction_object': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
+            'trigger_reaction_on': ('django.db.models.fields.IntegerField', [], {'default': '0', 'blank': 'True'}),
             'width': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
             'xcoor': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
             'ycoor': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
@@ -218,12 +122,23 @@ class Migration(SchemaMigration):
             'creator_name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
             'creator_uid': ('django.db.models.fields.IntegerField', [], {}),
             'description': ('django.db.models.fields.CharField', [], {'max_length': '16384'}),
+            'download_url': ('django.db.models.fields.CharField', [], {'max_length': '255', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'genre': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_published': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'pub_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            'thumb_url': ('django.db.models.fields.CharField', [], {'max_length': '255', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            'url': ('django.db.models.fields.CharField', [], {'max_length': '255', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'users': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.User']", 'symmetrical': 'False'})
+        },
+        'storyscape.storydownload': {
+            'Meta': {'object_name': 'StoryDownload'},
+            'device_id': ('django.db.models.fields.CharField', [], {'max_length': '20'}),
+            'download_time': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'story': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['storyscape.Story']"}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']", 'null': 'True'})
         },
         'storyscape.storylibrary': {
             'Meta': {'object_name': 'StoryLibrary'},

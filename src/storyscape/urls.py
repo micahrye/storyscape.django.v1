@@ -1,9 +1,5 @@
 from django.conf.urls.defaults import patterns, url
 
-# Uncomment the next two lines to enable the admin:
-from django.contrib import admin
-admin.autodiscover()
-
 urlpatterns = patterns('storyscape.views',
 
     url(r'^$', 'stories_library', name='stories_library'),
@@ -21,4 +17,5 @@ urlpatterns = patterns('storyscape.views',
     url(r'^preview/(?P<story_id>\d+)/$', 'story_preview', name="story_preview"),
     url(r'^reader/$', 'reader_info', name="reader_info"),
 
+    url(r'^download/$', 'download_story', name='download_story'),
 )
