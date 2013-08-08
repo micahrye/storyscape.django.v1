@@ -134,6 +134,13 @@
 	<script type="template" id="story-list-item">
 		<a href="#" class="load-story-option" data-story-id="<%=story_id %>"><%= title %>&nbsp;</a>
 	</script>
+	
+	<div class="hidden">
+		<form id="update-text-form" class="update-text-form">
+			<textarea name="text" id="update-text-field"></textarea>
+			<button class="btn">Update Text</button>
+		</form>
+	</div>
 {% endblock %}
 
 {% block extra_css %}

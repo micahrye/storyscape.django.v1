@@ -331,16 +331,16 @@ var MediaObject = Backbone.Model.extend({
 			scaleY = $('#builder-pane').innerHeight() / StoryScape.DEVICE_HEIGHT;
 		if (attributes) {
 			if (attributes.x) {
-				attributes.x *= scaleX;
+				attributes.x = Math.ceil(attributes.x * scaleX);
 			}
 			if (attributes.y) {
-				attributes.y *= scaleY;
+				attributes.y = Math.ceil(attributes.y * scaleY);
 			}
 			if (attributes.width) {
-				attributes.width *= scaleX;
+				attributes.width = Math.ceil(attributes.width * scaleX);
 			}
 			if (attributes.height) {
-				attributes.height *= scaleY;
+				attributes.height = Math.ceil(attributes.height * scaleY);
 			}
 			if (attributes.font_size) {
 				attributes.font_size = Math.ceil(attributes.font_size * scaleY);
@@ -357,10 +357,10 @@ var MediaObject = Backbone.Model.extend({
 		var scaleX = StoryScape.DEVICE_WIDTH / $('#builder-pane').innerWidth(),
 			scaleY = StoryScape.DEVICE_HEIGHT / $('#builder-pane').innerHeight();
 		
-		json.x *= scaleX;
-		json.y *= scaleY;
-		json.width *= scaleX;
-		json.height *= scaleY;
+		json.x = Math.floor(json.x * scaleX);
+		json.y = Math.floor(json.y * scaleY);
+		json.width = Math.floor(json.width * scaleX);
+		json.height = Math.floor(json.height * scaleY);
 		  
 		if (json.font_size) {
 			json.font_size = Math.floor(json.font_size * scaleY);
@@ -498,7 +498,7 @@ var Page = Backbone.Model.extend({
 		});
 		
 		this.on("deselect", function() {
-			$('.media-object.selected').resizable( "destroy" );
+			$('.media-object.selected.resizable').resizable( "destroy" ).removeClass("resizable");
 			$('.media-object.selected textarea').blur();
 			$('.media-object').removeClass('selected');
 			
@@ -555,25 +555,28 @@ var Page = Backbone.Model.extend({
 	
 	createElForMediaObject: function(mediaObject) {
 		var $el = $('<div class="media-object"></div>');
+		
 		if (mediaObject.getType() == "text") {
-			var $textArea;
 			
-			if (window.IS_PREVIEW_MODE) {
-				$textArea = $('<div>' + mediaObject.getText() + '</div>');
-			} else {
-				$textArea = $('<textarea>' + mediaObject.getText() + '</textarea>');
+			var $textArea = $('<div class="text-media"></div>');
+			if (! window.IS_PREVIEW_MODE) {
+				
+				var $editIcon = $('<a class="edit-text-icon" href="#"></a>');
+				$el.append($editIcon);
+				
+				function editEl() {
+					$("#update-text-field").html(mediaObject.get("text"));
+					$('#update-text-form').data("element",$el);
+					$.fancybox.open({'href':'#update-text-form'});
+				}
+				$editIcon.click(editEl);
+				$el.dblclick(editEl);
 			}
-			$el.append($textArea);
+			$el.append($textArea).addClass("text-media-object");
 			$el.css({
 				'font-size': mediaObject.getFontSize(),
 				'color': mediaObject.getColor(),
-				});
-			$textArea.change(function(e) {
-				mediaObject.setText($(this).val());
 			});
-			$textArea.click(function(e) {
-				e.stopPropagation();
-			})
 		} else {
 			$el.append($('<img src="' + mediaObject.getURL() + '">'));
 		}
@@ -596,6 +599,11 @@ var Page = Backbone.Model.extend({
 		StoryScape.finishMediaObjectElInit($el,mediaObject);
 		
 		$('#builder-pane').append($el);
+		
+		if ($textArea) {
+			this.updateTextElement($el, mediaObject.getText());
+		}
+		
 		return $el;
 	},
 	
@@ -604,17 +612,20 @@ var Page = Backbone.Model.extend({
 		
 		StoryScape.currentStory.getCurrentPage().trigger("deselect");
 		$el.addClass('selected');
-		$el.resizable({
-			containment: "#builder-pane",
-			minHeight:48,
-			minWidth:48,
-			stop: function( event, ui ) {
-				var $el = ui.element;
-				mediaObject.setWidth( $el.innerWidth());
-				mediaObject.setHeight( $el.innerHeight());
-			},
-			zIndex:0
-		});
+		
+		if (mediaObject.getType() != "text") {
+			$el.resizable({
+				minHeight:48,
+				minWidth:48,
+				stop: function( event, ui ) {
+					var $el = ui.element;
+					mediaObject.setWidth( $el.innerWidth());
+					mediaObject.setHeight( $el.innerHeight());
+				},
+				zIndex:0
+			});
+			$el.addClass("resizable");
+		}
 		
 		$('.context-sensitive-menu').addClass("hidden");
 		$('.object-menu').removeClass("hidden");
@@ -676,6 +687,32 @@ var Page = Backbone.Model.extend({
 		$('.object-menu #goto-on-touch-select').change(function() {
 			mediaObject.setPageOnTouch($(this).val());
 		});
+	},
+	
+	updateTextElement: function($el, newText) {
+		var text = newText.replace(/\n/g, '<br/>').replace(/ /g, '&nbsp;')
+        var mediaObject = $el.data("mediaObject");
+		var size = this.measureText(text, mediaObject.getFontSize() + "px " + $el.css("font-family"));
+		$el.css(size);
+		$el.find("div.text-media").html(text);
+		mediaObject.setText(newText);
+		$.fancybox.close();
+		this.selectElement($el);
+	},
+	
+	measureText: function(text, style) {
+		if (! text) {
+			return {width:50, height:50};
+		}
+		var o = $('<div>' + text + '</div>')
+		            .css({'position': 'absolute', 'float': 'left', 'white-space': 'nowrap', 'visibility': 'hidden', 'font': style})
+		            .appendTo($('body')),
+			w = o.width(),
+			h = o.height();
+
+		o.remove();
+
+		return {width:w, height:h};
 	},
 	
 	createAllElements: function() {
@@ -801,13 +838,11 @@ var Story = Backbone.Model.extend({
 		this.bind("beensaved", function() {
 			$(window).unbind("beforeunload", StoryScape.onUnload);
 			$("#unsaved-message").css("display","none");
-			console.log("none");
 		})
 		this.bind("change", function() {
 			$(window).unbind("beforeunload", StoryScape.onUnload);
 			$(window).bind('beforeunload', StoryScape.onUnload);
 			$("#unsaved-message").css("display","inline-block");
-			console.log("inline");
 		})
 		this.trigger("beensaved");
 		
@@ -816,33 +851,38 @@ var Story = Backbone.Model.extend({
 	initializeNewStory: function() {
 		this.insertNewPage();
 		var page = this.getCurrentPage();
-		var scaleY = StoryScape.DEVICE_HEIGHT / $('#builder-pane').innerHeight();
-		var mo = new MediaObject({'font_size':58 * scaleY,
-									'x':230,
-									'y':180,
-									'text':'[New Story Title]',
-									'color':'#111',
-									'type':'text',
-		});
-		page.addMediaObject(mo);
-		mo = new MediaObject({'font_size':24 * scaleY,
-					'x':40,
-					'y':400,
-					'width':1600,
-					'text':'[This is where you can put a nice description of your story]',
-					'color':'#444',
-					'type':'text',
-		});
-		page.addMediaObject(mo);
-		mo = new MediaObject({'font_size':28 * scaleY,
-					'x':100,
-					'y':630,
-					'width':1600,
-					'text':'By: [' + window.USERNAME + ']',
-					'color':'#333',
-					'type':'text',
-		});
-		page.addMediaObject(mo);
+		
+		setTimeout(_.bind(function() {
+			var scaleY = StoryScape.DEVICE_HEIGHT / $('#builder-pane').innerHeight();
+			var mo = new MediaObject({'font_size':57.7 * scaleY,
+										'x':230,
+										'y':180,
+										'text':'[New Story Title]',
+										'color':'#111',
+										'type':'text',
+			});
+			page.addMediaObject(mo);
+			mo = new MediaObject({'font_size':24 * scaleY,
+						'x':40,
+						'y':400,
+						'width':1600,
+						'text':'[This is where you can put a nice description of your story]',
+						'color':'#444',
+						'type':'text',
+			});
+			page.addMediaObject(mo);
+			mo = new MediaObject({'font_size':28 * scaleY,
+						'x':100,
+						'y':630,
+						'width':1600,
+						'text':'By: [' + window.USERNAME + ']',
+						'color':'#333',
+						'type':'text',
+			});
+			page.addMediaObject(mo);
+			page.trigger("deselect");
+			this.trigger("beensaved");
+		}, this), 1);
 	},
 	
 	toJSON: function() {
@@ -971,8 +1011,28 @@ StoryScape.initStoryCreation = function() {
 		});
 		
 		$el.bind('stoppeddrag', function() {
-			mediaObject.setX( $(this).position().left);
-			mediaObject.setY( $(this).position().top);
+			if (mediaObject.getX() != $(this).position().left) {
+				mediaObject.setX( $(this).position().left);
+			}
+			if (mediaObject.getY() != $(this).position().top) {
+				mediaObject.setY( $(this).position().top);
+			}
+			
+			if ($el.hasClass("resizable")) {
+				var area = $("#builder-pane");
+				var maxHeight = area.height() 
+								- $(this).position().top 
+							    - (area.outerHeight() - area.height())
+								- parseInt($(this).css('margin-bottom'),10);
+				$el.resizable('option','maxHeight', maxHeight);
+				
+				var maxWidth = area.width() 
+							- $(this).position().left 
+						    - (area.outerWidth() - area.width())
+							- parseInt($(this).css('margin-right'),10);
+				$el.resizable('option','maxWidth', maxWidth);
+			}
+			
 		});
 
 	}
@@ -1028,6 +1088,11 @@ StoryScape.initStoryCreation = function() {
 	$('#story-tags').change(function(e) {
 		StoryScape.currentStory.setTags($(this).val());
 	});
+	
+	$("#update-text-form").submit(function() {
+		StoryScape.currentStory.getCurrentPage().updateTextElement($(this).data("element"), $('#update-text-field').val());
+		return false;
+	})
 	
 	jQuery.validator.setDefaults({
 		onkeyup:false,
@@ -1292,18 +1357,18 @@ StoryScape.animateElement = function($el,code) {
             } else {
                 var $drag = $(this).addClass('active-handle').parent().addClass('draggable');
             }
-            var drg_h = $drag.outerHeight(),
-	            drg_w = $drag.outerWidth(),
+            var drg_h = $drag.height(),
+	            drg_w = $drag.width(),
 	    		pos_y = $drag.offset().top + drg_h - e.pageY,
             	pos_x = $drag.offset().left + drg_w - e.pageX;
 
             var onMouseMove = function(e) {
-                var drg_h = $drag.outerHeight(),
-	                drg_w = $drag.outerWidth(),
+                var drg_h = $drag.height(),
+	                drg_w = $drag.width(),
 	        		top = e.pageY + pos_y - drg_h,
 	        		left = e.pageX + pos_x - drg_w,
-	        		area_top = opt.area.offset().top + (opt.area.outerHeight() - opt.area.height()) / 2,
-	            	area_left = opt.area.offset().left + (opt.area.outerWidth() - opt.area.width()) / 2;
+	        		area_top = opt.area.offset().top + (opt.area.outerHeight() - opt.area.height()) / 2 + parseInt($drag.css('margin-top'),10),
+	            	area_left = opt.area.offset().left + (opt.area.outerWidth() - opt.area.width()) / 2 + parseInt($drag.css('margin-left'),10);
 	        	top = _.max([top,area_top]);
 	        	left = _.max([left,area_left]);
 	        	top = _.min([top, area_top + opt.area.height() - drg_h]);
