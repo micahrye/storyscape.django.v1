@@ -1118,6 +1118,7 @@ StoryScape.initStoryCreation = function() {
 	});
 	
 	$("#save-story").click(function() {
+		StoryScape.currentStory.getCurrentPage().trigger("deselect");
 		$("#create-story-form").find(".defaultTextActive").val("");
 		var success = $("#create-story-form").valid();
 		$("#create-story-form").find(".defaultText").blur();
