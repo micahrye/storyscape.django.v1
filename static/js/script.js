@@ -601,14 +601,15 @@ var Page = Backbone.Model.extend({
 		$('#builder-pane').append($el);
 		
 		if ($textArea) {
-			this.updateTextElement($el, mediaObject.getText());
+			this.resizeTextElement($el);
 		}
 		
 		return $el;
 	},
 	
 	selectElement: function($el) {
-		var mediaObject = $el.data("mediaObject");
+		var mediaObject = $el.data("mediaObject"),
+			page = this;
 		
 		StoryScape.currentStory.getCurrentPage().trigger("deselect");
 		$el.addClass('selected');
@@ -647,9 +648,10 @@ var Page = Backbone.Model.extend({
 			$('.object-menu #font-size').change(function() {
 				mediaObject.setFontSize( $(this).val());
 				$el.css("font-size", $(this).val()+"px");
+				page.resizeTextElement($el);
 			});
 			
-			$('.object-menu #color-picker').val(mediaObject.getColor() || "#000000");
+			$('.object-menu #color-picker').spectrum("set", mediaObject.getColor() || "#000000");
 			$('.object-menu #color-picker').change(function() {
 				mediaObject.setColor( $(this).val());
 				$el.css("color", $(this).val());
@@ -698,6 +700,10 @@ var Page = Backbone.Model.extend({
 		mediaObject.setText(newText);
 		$.fancybox.close();
 		this.selectElement($el);
+	},
+	
+	resizeTextElement: function($el) {
+		this.updateTextElement($el, $el.data("mediaObject").getText());
 	},
 	
 	measureText: function(text, style) {
@@ -1056,7 +1062,12 @@ StoryScape.initStoryCreation = function() {
 	
 	
 	$("#color-picker").spectrum({
-	    color: "#000"
+	    color: "#000",
+	    showInitial: true,
+	    showInput: true,
+	    showButtons: false,
+	    preferredFormat: "name",
+		clickoutFiresChange: true,
 	});
 	
 	$('#add-text').click(function(e){
