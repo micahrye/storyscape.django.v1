@@ -1,7 +1,7 @@
 <header>
 	{% spaceless %}
 	<div class="invisible-content">
-		<a href="{% url index %}">StoryScape</a>
+		<a href="{% url index %}" class="index-link">StoryScape</a>
 		<a href="{% url stories_library %}">Browse Stories</a>
 		<a href="{% url media_library %}">Image Library</a>
 		{% if request.user.is_authenticated %}

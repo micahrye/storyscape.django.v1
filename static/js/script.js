@@ -698,8 +698,6 @@ var Page = Backbone.Model.extend({
 		$el.css(size);
 		$el.find("div.text-media").html(text);
 		mediaObject.setText(newText);
-		$.fancybox.close();
-		this.selectElement($el);
 	},
 	
 	resizeTextElement: function($el) {
@@ -1101,7 +1099,12 @@ StoryScape.initStoryCreation = function() {
 	});
 	
 	$("#update-text-form").submit(function() {
-		StoryScape.currentStory.getCurrentPage().updateTextElement($(this).data("element"), $('#update-text-field').val());
+		var $el = $(this).data("element"),
+			page = StoryScape.currentStory.getCurrentPage();
+		page.updateTextElement($el, $('#update-text-field').val());
+		$.fancybox.close();
+		page.selectElement($el);
+
 		return false;
 	})
 	

@@ -22,23 +22,32 @@
 		</span>
 		{% endif %}
 	</div>
-	<h1 id="story-title-display" class="story-title-display">{{ story.title|title }}</h1>
-	<div id='storyscape-container'>
+	<div id='storyscape-container' class="preview-wrapper">
 	 
 		{% spaceless %}
-			<div> 
-				<div id='builder-pane-container' class="builder-pane-container preview-container"> 
-					<div class="builder-container">
-						<div id="builder-pane" class="builder-pane">
-						</div>
-						{% include "storyscape/storyline_navigation.html" %} 
+		<div>
+			<h1 id="story-title-display" class="story-title-display">{{ story.title|title }}</h1>
+			<div></div>
+		</div>
+		<div>
+			<div id='builder-pane-container' class="builder-pane-container preview-container"> 
+				<div class="builder-container">
+					<div id="builder-pane" class="builder-pane">
 					</div>
+					{% include "storyscape/storyline_navigation.html" %} 
 				</div>
 			</div>
+			<div class="preview-guide">
+				<h3>Story Preview</h3>
+				<ul>
+					<li>You can use the Left and Right arrow keys to navigate between pages
+					<li>Click things on the page! Depending on the story, many may react!
+					<li>In the reader, some objects react when you make a sound. Go ahead and press this big green button to see how they'll react.
+				</ul>
+					<button class="btn btn-large btn-success make-sound" id="make-sound">Aaah!</button>
+			</div>
+		</div>
 		{% endspaceless %}
-	</div>
-	<div class="preview-controls">
-		<button class="btn btn-large btn-success" id="make-sound">Simulate Sound</button>
 	</div>
 
 {% endblock %}

@@ -120,14 +120,20 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f733b5e5', e
 	box-sizing: border-box;
 }
 header a {
-	line-height:50px;
-	color:#FFF;
-	display:inline-block;
-	padding:0 20px;
+	line-height: 50px;
+	color: #FFF;
+	display: inline-block;
+	padding: 0 15px;
 	border-left: 1px solid rgba(255,255,255,.5);
-	border-right: 1px solid rgba(50,150,50,.25);
-	text-shadow: 1px 1px 3px rgba(50,150,50,.4);
-	float:left;
+	border-right: 1px solid rgba(50,130,190,.25);
+	text-shadow: 1px 1px 3px rgba(0,80,150,.4);
+	float: left;
+}
+header a.index-link {
+	font-size: 28px;
+	line-height: 46px;
+	height: 50px;
+	text-shadow: 0px 0px 4px rgba(0,80,150,.7);
 }
 header a:hover {
 background: -moz-linear-gradient(top,  rgba(255,255,255,0) 0%, rgba(255,255,255,0) 33%, rgba(255,255,255,0.4) 100%); /* FF3.6+ */
@@ -1004,19 +1010,44 @@ background-color:rgba(0,0,0,0)}
 	margin: 0 auto 10px;
 }
 
-.preview-options {
-	position:absolute;
-	right:165px;
-	top:0px;
+.preview-wrapper {
+	display:table;
 }
-.preview-controls {
-	text-align:center;
+.preview-wrapper > div {
+	display:table-row;
 }
-.preview-controls .btn {
-	padding:20px 40px;
+.preview-wrapper > div > * {
+	display:table-cell;
+}
+.preview-guide {
+	display:table-cell;
+	width:300px;
+	vertical-align:top;
+	padding-right:50px;
+	padding-left:20px;
+}
+.preview-guide h3 {
+	margin-top:0;
+	padding-left:25px;
+}
+.preview-guide li {
+	font-size:20px;
+	line-height:26px;
+	margin-bottom:15px;
+}
+.preview-guide .make-sound {
+	display:block;
+	margin: -10px auto 0;
+	padding:10px 25px;
 }
 .builder-pane-container.preview-container {
-	margin-bottom:20px;
+	margin:0 0 20px;
+	display:table-cell;
+	vertical-align:top;
+	padding-left:70px;
+}
+.preview-wrapper .story-title-display {
+	padding-left:70px;
 }
 
 .no-found-message {

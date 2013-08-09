@@ -15,7 +15,7 @@ urlpatterns = patterns('storyscape.views',
     url(r'^publish/$', 'publish_story', name='publish_story'), 
     
     url(r'^preview/(?P<story_id>\d+)/$', 'story_preview', name="story_preview"),
-    url(r'^reader/$', 'reader_info', name="reader_info"),
+    url(r'^aboutreader/$', 'reader_info', name="reader_info"),
 
     url(r'^download/$', 'download_story', name='download_story'),
 )
