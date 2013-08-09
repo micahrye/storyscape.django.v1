@@ -47,6 +47,7 @@ ACTION_CODES = OrderedDict([('Fade Out',105),
                 ('Slide Left',116),
                 ('Slide Right',101),
                 ]);
+GOTO_PAGE_ACTION_CODE = 200
 
 def create_download_media(pmo, story):
     dload_url = story.creator_name+'/'
@@ -105,22 +106,29 @@ def populate_pmo_from_json(pmo_json, z_index, story, page, existing_pmo):
         pmo.media_object = mo
     elif pmo_json.get("type") == 'text':
             
-        pmo.font_size = pmo_json.get('font_size', pmo.font_size)
-        pmo.font_color = pmo_json.get('color', pmo.font_color)
+        pmo.font_size = pmo_json.get('font_size') or pmo.font_size
+        pmo.font_color = pmo_json.get('color') or pmo.font_color
+        
+        if len(pmo.font_color) == 4:
+            # we have the format #CCC and we need #CCCCCC
+            pmo.font_color = "".join(["{0}{0}".format(x) for x in pmo.font_color])[1:]
 
-    pmo.anime_code = pmo_json.get('action_code',pmo.anime_code)
-    pmo.animate_on = pmo_json.get('action_trigger_code',pmo.animate_on)
-    pmo.goto_page = pmo_json.get('page_on_touch',pmo.goto_page)
+    pmo.anime_code = pmo_json.get('action_code') or pmo.anime_code
+    pmo.animate_on = pmo_json.get('action_trigger_code') or pmo.animate_on
+    pmo.goto_page = pmo_json.get('page_on_touch') or pmo.goto_page
     if not pmo.goto_page:
         pmo.goto_page = -1
+    else:
+        pmo.anime_code = GOTO_PAGE_ACTION_CODE
+    
     pmo.reaction_object = 'none' 
-    pmo.xcoor = pmo_json.get('x',pmo.xcoor)
-    pmo.ycoor = pmo_json.get('y',pmo.ycoor)
+    pmo.xcoor = pmo_json.get('x') or pmo.xcoor
+    pmo.ycoor = pmo_json.get('y') or pmo.ycoor
     pmo.z_index = z_index
-    pmo.width = pmo_json.get('width',pmo.width)
-    pmo.height = pmo_json.get('height',pmo.height)
-    pmo.assoc_text = pmo_json.get('text',pmo.assoc_text)
-    pmo.media_type = pmo_json.get('type',pmo.media_type)
+    pmo.width = pmo_json.get('width') or pmo.width
+    pmo.height = pmo_json.get('height') or pmo.height
+    pmo.assoc_text = pmo_json.get('text') or pmo.assoc_text
+    pmo.media_type = pmo_json.get('type') or pmo.media_type
     pmo.page = page
 
     

@@ -95,18 +95,18 @@ class PageMediaObject(models.Model):
     # MediaObjects will contain url, if null means pmo is text
     media_object = models.ForeignKey(MediaObject, null=True)
     page = models.ForeignKey(Page)
-    # a media object may be deminsionless, so don't require
+    # a media object may be dimensionless, so don't require
     # that type of information. Ex: an audio file.
-    xcoor = models.IntegerField(blank=True, null=True)
-    ycoor = models.IntegerField(blank=True, null=True)
-    width = models.IntegerField(blank=True, null=True)
-    z_index = models.IntegerField(blank=True, null=True, default=0)
-    height = models.IntegerField(blank=True, null=True)
-    anime_code = models.IntegerField(blank=True, null=True)
+    xcoor = models.IntegerField(default=0)
+    ycoor = models.IntegerField(default=0)
+    width = models.IntegerField(default=0)
+    z_index = models.IntegerField(default=0)
+    height = models.IntegerField(default=0)
+    anime_code = models.IntegerField(default=-1)
     # make sure values consistent accross platforms 
-    animate_on = models.IntegerField(blank=True, default=0) 
-    goto_page = models.IntegerField(blank=True, default=-1) 
-    trigger_reaction_on = models.IntegerField(blank=True, default=0) 
+    animate_on = models.IntegerField(default=0) 
+    goto_page = models.IntegerField(default=-1) 
+    trigger_reaction_on = models.IntegerField(default=0) 
     #should default to none on reaction_object but django-south not 
     #picking up diff, chanage later (7/4/13)
     reaction_object = models.CharField(max_length=255, 

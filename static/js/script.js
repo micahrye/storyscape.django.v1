@@ -1066,7 +1066,6 @@ StoryScape.initStoryCreation = function() {
 	    showInitial: true,
 	    showInput: true,
 	    showButtons: false,
-	    preferredFormat: "name",
 		clickoutFiresChange: true,
 	});
 	
