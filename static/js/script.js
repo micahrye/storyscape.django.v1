@@ -1425,7 +1425,7 @@ StoryScape.initStoryPreview = function() {
 				StoryScape.animateElement($el, mediaObject.getActionCode());
 			}
 			if (mediaObject.getPageOnTouch() >= 1) {
-				StoryScape.currentStory.changePage(mediaObject.getPageOnTouch());
+				StoryScape.currentStory.changePage(mediaObject.getPageOnTouch() - 1);
 			}
 		});
 		
