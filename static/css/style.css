@@ -181,7 +181,8 @@ label {
 	padding-bottom:10px;
 }
 .forgotpassword {
-	margin-right:20px;
+	margin-top: 20px;
+	display: inline-block;
 }
 
 .top-main-buttons {
@@ -766,10 +767,10 @@ background-color:rgba(0,0,0,0)}
 	resize: none;
 }
 .control-panel textarea[name="description"] {
-	height:100px;
+	height:130px;
 }
 .control-panel textarea[name="tags"] {
-	height:80px;
+	height:100px;
 }
 .control-panel input[type="checkbox"] {
 	margin-right:165px;
@@ -780,7 +781,6 @@ background-color:rgba(0,0,0,0)}
 	font-size:14px;
 	font-weight:300;
 	width:150px;
-	height: 26px;
 	vertical-align: baseline;
 }
 .control-panel select.short {
@@ -1099,4 +1099,18 @@ background-color:rgba(0,0,0,0)}
 }
 .sp-picker-container input {
 	width:100%;
+}
+.under-construction-message {
+	position:absolute;
+	width:100%;
+	left:0;
+	bottom:15px;
+	text-align:center;
+	line-height: 26px;
+}
+.story-thumbnail .thumbnail-frame .under-construction-thumbnail {
+	max-height: 150px;
+	margin-top: -8px;
+	width: auto;
+	vertical-align: top;
 }

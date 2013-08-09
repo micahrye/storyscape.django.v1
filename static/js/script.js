@@ -567,14 +567,23 @@ var Page = Backbone.Model.extend({
 				function editEl() {
 					$("#update-text-field").val(mediaObject.get("text"));
 					$('#update-text-form').data("element",$el);
-					$.fancybox.open({'href':'#update-text-form'});
+					$.fancybox.open({'href':'#update-text-form',
+						'afterLoad': function() {
+							
+							$('.fancybox-wrap').drags({exempt:'textarea,button'});
+							
+							setTimeout(function() {
+								$(window).unbind("scroll",$.fancybox.center);
+							},50);
+						}
+					});
 				}
 				$editIcon.click(editEl);
 				$el.dblclick(editEl);
 			}
 			$el.append($textArea).addClass("text-media-object");
 			$el.css({
-				'font-size': mediaObject.getFontSize(),
+				'font-size': mediaObject.getFontSize()+"px",
 				'color': mediaObject.getColor(),
 			});
 		} else {
@@ -826,7 +835,6 @@ var Story = Backbone.Model.extend({
 		
 		$('#create-story-form input, #create-story-form textarea').removeClass("defaultTextActive");
 		$('#story-title').val(this.getTitle());
-		$('#story-genre').val(this.getGenre());
 		$('#story-description').val(this.getDescription());
 		$('#story-tags').val(this.getTags());
 		$('#create-story-form input, #create-story-form textarea').blur().change();
@@ -944,12 +952,6 @@ var Story = Backbone.Model.extend({
 	getTitle: function() {
 		return this.get("title");
 	},
-	setGenre: function(value) {
-		this.set("genre", value);
-	},
-	getGenre: function() {
-		return this.get("genre");
-	},
 	setDescription: function(value) {
 		this.set("description", value);
 	},
@@ -1005,7 +1007,7 @@ StoryScape.finishMediaObjectElInit = function($el, mediaObject) {
 StoryScape.initStoryCreation = function() {
 	
 	StoryScape.finishMediaObjectElInit = function($el, mediaObject) {
-		$el.drags();
+		$el.drags({area:$('#builder-pane'), exempt:".ui-resizable-handle,.remove-media-object,.edit-text-icon"});
 		$el.mousedown(function(e) {
 			e.stopPropagation();
 			if ($(this).hasClass("selected")) {
@@ -1091,9 +1093,6 @@ StoryScape.initStoryCreation = function() {
 	$('#story-description').change(function(e) {
 		StoryScape.currentStory.setDescription($(this).val());
 	});
-	$('#story-genre').change(function(e) {
-		StoryScape.currentStory.setGenre($(this).val());
-	});
 	$('#story-tags').change(function(e) {
 		StoryScape.currentStory.setTags($(this).val());
 	});
@@ -1123,7 +1122,7 @@ StoryScape.initStoryCreation = function() {
 		var success = $("#create-story-form").valid();
 		$("#create-story-form").find(".defaultText").blur();
 		if (! success ) {
-			toastr['error']("Cannot save, make sure your story has a title, genre, description, and tags");
+			toastr['error']("Cannot save, make sure your story has a title, description, and tags");
 			return;
 		}
 		
@@ -1173,16 +1172,20 @@ StoryScape.initStoryCreation = function() {
 		if ($(this).hasClass("disabled")) {
 			return;
 		}
+		$(this).prop('disabled', true);
+		toastr["info"]("Publishing your story. This could take a bit.");
 		$.ajax("/storyscape/publish/",
 			{
 				type: "POST",
 				data:{story_id: StoryScape.currentStory.getStoryId()},
-				success:function(response) {
+				success:_.bind(function(response) {
 					toastr["success"]("Story successfully published to the app!");
-				},
-				error:function() {
+					$(this).prop('disabled', false);
+				}, this),
+				error:_.bind(function() {
 					toastr["error"]("Failed to publish story. Please try again later.");
-				}
+					$(this).prop('disabled', false);
+				}, this)
 		});
 	});
 	$("#open-story").click(function() {
@@ -1354,7 +1357,7 @@ StoryScape.animateElement = function($el,code) {
 (function($) {
     $.fn.drags = function(opt) {
 
-        opt = $.extend({handle:"",cursor:"move", area:$('#builder-pane')}, opt);
+        opt = $.extend({handle:"",cursor:"move",area:$("body"),exempt:''}, opt);
 
         if(opt.handle === "") {
             var $el = this;
@@ -1363,7 +1366,7 @@ StoryScape.animateElement = function($el,code) {
         }
 
         return $el.css('cursor', opt.cursor).on("mousedown", function(e) {
-        	if ($(e.target).hasClass('ui-resizable-handle') || $(e.target).hasClass('remove-media-object')) {
+        	if(opt.exempt && $(e.target).is(opt.exempt)) {
         		return;
         	}
         	
@@ -1382,8 +1385,8 @@ StoryScape.animateElement = function($el,code) {
 	                drg_w = $drag.width(),
 	        		top = e.pageY + pos_y - drg_h,
 	        		left = e.pageX + pos_x - drg_w,
-	        		area_top = opt.area.offset().top + (opt.area.outerHeight() - opt.area.height()) / 2 + parseInt($drag.css('margin-top'),10),
-	            	area_left = opt.area.offset().left + (opt.area.outerWidth() - opt.area.width()) / 2 + parseInt($drag.css('margin-left'),10);
+	        		area_top = opt.area.offset().top + (opt.area.outerHeight() - opt.area.height()) / 2 + parseInt($drag.css('margin-top'),10) + opt.area.scrollTop(),
+	            	area_left = opt.area.offset().left + (opt.area.outerWidth() - opt.area.width()) / 2 + parseInt($drag.css('margin-left'),10) + opt.area.scrollLeft();
 	        	top = _.max([top,area_top]);
 	        	left = _.max([left,area_left]);
 	        	top = _.min([top, area_top + opt.area.height() - drg_h]);

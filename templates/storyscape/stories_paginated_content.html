@@ -10,7 +10,8 @@
 					{% if story.is_published %}
 						<img src='{{ MEDIA_URL }}{{ story.thumb_url }}' class='image-thumbnail' />
 					{% else %}
-						<img src='{{ STATIC_URL }}img/book.png' class='image-thumbnail' />
+						<img src='{{ STATIC_URL }}img/book.png' class='image-thumbnail under-construction-thumbnail' />
+						<span class="under-construction-message">Under Construction</span>
 					{% endif %}
 					<a href="{% url story_preview story.id %}?from=stories" class="media-overlay button display-on-hover">
 						<span class="icon read-story-icon"></span>

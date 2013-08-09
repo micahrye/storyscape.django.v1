@@ -7,6 +7,7 @@ import tagging
 
 from medialibrary.models import MediaObject
 
+DEFAULT_STORY_GENRE = "Children"
 
 # Create your models here.
 max_length_bytes = 16384

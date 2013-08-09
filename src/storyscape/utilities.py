@@ -57,7 +57,7 @@ def story_to_xml(story, save_path):
                 f.write(output.encode('UTF-8'))
                 #NOTE: at some point may have associated text with image... 
             elif mo_type == 'text':
-                assoc_text = pmo.assoc_text
+                assoc_text = pmo.assoc_text.replace("\n", "&#10;")
                 output = '<media_object type="' + mo_type  \
                         + '" xcoor="' + xcoor + '" ycoor="' + ycoor  \
                         + '" width="' + width + '" height="' + height  \

@@ -21,7 +21,7 @@ from django.conf import settings
 from tagging.models import TaggedItem, Tag
 import simplejson
 
-from storyscape.models import Story, PageMediaObject, Page, StoryDownload
+from storyscape.models import Story, PageMediaObject, Page, StoryDownload, DEFAULT_STORY_GENRE
 from storyscape import utilities
 from medialibrary.models import MediaLibrary, MediaObject
 from medialibrary.views import NUM_ITEMS_PER_PAGE
@@ -134,7 +134,6 @@ def story_to_dict(story):
     tmp["title"] = story.title
     tmp["creator_uid"] = story.creator_uid
     tmp["author_name"] = story.creator_name
-    tmp["genre"] = story.genre
     tmp["description"] = story.description
     tmp["tags"] = [tag.name for tag in story.tags]
     tmp["num_pages"] = story.page_set.count()
@@ -220,7 +219,7 @@ def save_story(request):
         story.users.add(user)
 
     story.title = story_json.get("title",story.title)
-    story.genre = story_json.get("genre",story.genre)
+    story.genre = DEFAULT_STORY_GENRE
     story.description = story_json.get("description",story.description)
     story.tags.delete()
     story.tags = story_json.get("tags","")
