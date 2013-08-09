@@ -565,7 +565,7 @@ var Page = Backbone.Model.extend({
 				$el.append($editIcon);
 				
 				function editEl() {
-					$("#update-text-field").html(mediaObject.get("text"));
+					$("#update-text-field").val(mediaObject.get("text"));
 					$('#update-text-form').data("element",$el);
 					$.fancybox.open({'href':'#update-text-form'});
 				}
