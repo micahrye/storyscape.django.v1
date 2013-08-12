@@ -20,13 +20,13 @@
 						</div>
 					{% endif %}
 					{% if request.user.is_authenticated %}
-						<a href="#" class="toggle-favorite" title="Favorite Image">
+						<a href="#" class="toggle-favorite tipped" title="Favorite Image">
 							<span class="unfavorite-icon{% if not mo.id in favorited_ids %} hidden{% endif %}"></span>
 							<span class="favorite-icon{% if mo.id in favorited_ids %} hidden{% endif %}"></span>
 						</a>
 					{% endif %}
 					{% if request.user.is_authenticated and mo.creator_id == request.user.id %}
-						<a href="#" class="toggle-visible" title="Toggle Public Visibility">
+						<a href="#" class="toggle-visible tipped" title="Toggle Public Visibility">
 							<span class="invisible-icon{% if mo.license %} hidden{% endif %}"></span>
 							<span class="visible-icon{% if not mo.license %} hidden{% endif %}"></span>
 						</a>

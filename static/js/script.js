@@ -13,6 +13,11 @@ $(document).ready(function () {
 		}
 	});
 
+	$.fn.tipsy.defaults = _.extend($.fn.tipsy.defaults, {
+		    delayIn: 600,
+		    fade: true,
+		    opacity:.9
+	});
 	
 	switch (PAGE_NAME) {
 		case "CREATE_STORY":
@@ -33,6 +38,8 @@ $(document).ready(function () {
 		default:
 			break;
 	}
+	
+	$(".tipped").tipsy();
 	
 });
 
@@ -66,8 +73,9 @@ StoryScape.initializeDefaultText = function() {
  * Generic function to load a new page of library contents. Usually, pages call this through a simple wrapper called StoryScape.reloadPaginatedContent()
  */
 StoryScape.loadPaginatedContent = function(url, pageNumber, callback, data) {
+	var height = $("#pagination_content").height();
 	$("#pagination_content").addClass("hidden");
-	$("#pagination_loader").removeClass("hidden");
+	$("#pagination_loader").css('height',height+"px").removeClass("hidden");
 	
 	data = data || {};
 	data['PAGE_NUMBER'] = pageNumber;
@@ -84,6 +92,16 @@ StoryScape.loadPaginatedContent = function(url, pageNumber, callback, data) {
 			
 			$("#pagination_content").html(data.content);
 			$("#pagination_content").removeClass("hidden");
+			
+			var i = 0;
+			$('.thumbnail-container').each(function() {
+				$(this).css('opacity',0);
+				setTimeout(_.bind(function() {
+					$(this).css('opacity',1).addClass("animated bounceIn");
+				},this), 80 * ((i % 5) + i / 5));
+				i += 1;
+			});
+			$(".tipped").tipsy({gravity:'s'});
 			
 			StoryScape.NUMBER_OF_PAGES = data.pages;
 			StoryScape.CURRENT_PAGE = data.current_page;
@@ -550,11 +568,12 @@ var Page = Backbone.Model.extend({
 	
 	addMediaObject: function(mediaObject) {
 		this.get("media_objects").add(mediaObject);
-		this.createElForMediaObject(mediaObject);
+		return this.createElForMediaObject(mediaObject);
 	},
 	
 	createElForMediaObject: function(mediaObject) {
-		var $el = $('<div class="media-object"></div>');
+		var $el = $('<div class="media-object"></div>'),
+			page = this;
 		
 		if (mediaObject.getType() == "text") {
 			
@@ -566,7 +585,13 @@ var Page = Backbone.Model.extend({
 				
 				function editEl() {
 					$("#update-text-field").val(mediaObject.get("text"));
+					$("#update-text-field").data('original', mediaObject.get("text")).data('undo-changes', true);
 					$('#update-text-form').data("element",$el);
+					
+					$('#update-text-field').unbind("keyup");
+					$('#update-text-field').keyup(function() {
+						page.updateTextElement($el,$(this).val());
+					});
 					$.fancybox.open({'href':'#update-text-form',
 						'afterLoad': function() {
 							
@@ -575,6 +600,11 @@ var Page = Backbone.Model.extend({
 							setTimeout(function() {
 								$(window).unbind("scroll",$.fancybox.center);
 							},50);
+						},
+						'beforeClose': function() {
+							if ($('#update-text-field').data('undo-changes')) {
+								page.updateTextElement($el,$('#update-text-field').data('original'));
+							}
 						}
 					});
 				}
@@ -868,7 +898,7 @@ var Story = Backbone.Model.extend({
 			var scaleY = StoryScape.DEVICE_HEIGHT / $('#builder-pane').innerHeight();
 			var mo = new MediaObject({'font_size':57.7 * scaleY,
 										'x':230,
-										'y':180,
+										'y':160,
 										'text':'[New Story Title]',
 										'color':'#111',
 										'type':'text',
@@ -876,7 +906,7 @@ var Story = Backbone.Model.extend({
 			page.addMediaObject(mo);
 			mo = new MediaObject({'font_size':24 * scaleY,
 						'x':40,
-						'y':400,
+						'y':380,
 						'width':1600,
 						'text':'[This is where you can put a nice description of your story]',
 						'color':'#444',
@@ -885,13 +915,17 @@ var Story = Backbone.Model.extend({
 			page.addMediaObject(mo);
 			mo = new MediaObject({'font_size':28 * scaleY,
 						'x':100,
-						'y':630,
+						'y':580,
 						'width':1600,
-						'text':'By: [' + window.USERNAME + ']',
+						'text':'By: ' + window.USERNAME,
 						'color':'#333',
 						'type':'text',
 			});
-			page.addMediaObject(mo);
+			var $el = page.addMediaObject(mo),
+				newX = ($('#builder-pane').width() - $el.width()) / 2;
+			$el.css('left',newX+'px');
+			mo.setX(newX);
+			
 			page.trigger("deselect");
 			this.trigger("beensaved");
 		}, this), 1);
@@ -1065,7 +1099,6 @@ StoryScape.initStoryCreation = function() {
 	    color: "#000",
 	    showInitial: true,
 	    showInput: true,
-	    showButtons: false,
 		clickoutFiresChange: true,
 	});
 	
@@ -1100,6 +1133,7 @@ StoryScape.initStoryCreation = function() {
 		var $el = $(this).data("element"),
 			page = StoryScape.currentStory.getCurrentPage();
 		page.updateTextElement($el, $('#update-text-field').val());
+		$('#update-text-field').data("undo-changes", false);
 		$.fancybox.close();
 		page.selectElement($el);
 
@@ -1125,6 +1159,9 @@ StoryScape.initStoryCreation = function() {
 			return;
 		}
 		
+		var $this = $(this);
+		$this.prop('disabled', true);
+		
 		var data = {'story':JSON.stringify(StoryScape.currentStory.toJSON())};
 		$.ajax("/storyscape/save/",
 			{
@@ -1138,9 +1175,11 @@ StoryScape.initStoryCreation = function() {
 					$("#delete-story").removeClass("disabled");
 					$("#preview-story").removeClass("disabled");
 					StoryScape.currentStory.trigger("beensaved");
+					$this.prop('disabled', false);
 				},
 				error:function() {
 					toastr["error"]("Failed to save story. Please try again later.");
+					$this.prop('disabled', false);
 				}
 		});
 	});
@@ -1154,15 +1193,21 @@ StoryScape.initStoryCreation = function() {
 		if ($(this).hasClass("disabled")) {
 			return;
 		}
+
+		var $this = $(this);
+		$this.prop('disabled', true);
+
 		$.ajax("/storyscape/delete/",
 			{
 				type: "POST",
 				data:{story_id: StoryScape.currentStory.getStoryId()},
 				success:function(response) {
+					$this.prop('disabled', false);
 					StoryScape.currentStory = new Story();
 					toastr["success"]("Story successfully deleted!");
 				},
 				error:function() {
+					$this.prop('disabled', false);
 					toastr["error"]("Failed to delete story. Please try again later.");
 				}
 		});
@@ -1171,7 +1216,10 @@ StoryScape.initStoryCreation = function() {
 		if ($(this).hasClass("disabled")) {
 			return;
 		}
-		$(this).prop('disabled', true);
+
+		var $this = $(this);
+		$this.prop('disabled', true);
+		
 		toastr["info"]("Publishing your story. This could take a bit.");
 		$.ajax("/storyscape/publish/",
 			{
@@ -1179,11 +1227,11 @@ StoryScape.initStoryCreation = function() {
 				data:{story_id: StoryScape.currentStory.getStoryId()},
 				success:_.bind(function(response) {
 					toastr["success"]("Story successfully published to the app!");
-					$(this).prop('disabled', false);
+					$this.prop('disabled', false);
 				}, this),
 				error:_.bind(function() {
 					toastr["error"]("Failed to publish story. Please try again later.");
-					$(this).prop('disabled', false);
+					$this.prop('disabled', false);
 				}, this)
 		});
 	});
