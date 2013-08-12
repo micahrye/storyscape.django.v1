@@ -116,9 +116,8 @@ def populate_pmo_from_json(pmo_json, z_index, story, page, existing_pmo):
     pmo.anime_code = pmo_json.get('action_code') or pmo.anime_code
     pmo.animate_on = pmo_json.get('action_trigger_code') or pmo.animate_on
     pmo.goto_page = pmo_json.get('page_on_touch') or pmo.goto_page
-    if not pmo.goto_page:
-        pmo.goto_page = -1
-    else:
+    
+    if pmo.goto_page > -1:
         pmo.anime_code = GOTO_PAGE_ACTION_CODE
     
     pmo.reaction_object = 'none' 
@@ -214,7 +213,6 @@ def save_story(request):
     '''
 
     user = request.user
-    print request.POST
     story_json = simplejson.loads(request.POST.get("story"))
 
 
