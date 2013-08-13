@@ -515,5 +515,5 @@ def story_download_list(request):
     '''
     
     stories = Story.objects.filter(is_published=True, is_public = True)
-    download_urls = ", ".join(["{0}/{1}/{2}/{2}.zip".format(settings.SITE_URL, story.creator_name, story.title.replace(' ', '_')) for story in stories])
+    download_urls = ", ".join([story.download_url for story in stories])
     return HttpResponse(download_urls)
