@@ -225,6 +225,7 @@ StoryScape.initImageLibraryPage = function() {
 				$(this).find("img").trigger("click");
 			}
 		});
+		StoryScape.initializeLibraryImages();
 	}
 }
 
@@ -249,7 +250,7 @@ StoryScape.initImageLibrary = function() {
 		StoryScape.loadPaginatedContent("/medialibrary/get_media_objects", StoryScape.CURRENT_PAGE, StoryScape.initializeMediaLibraryContent, data);
 	}
 	
-	StoryScape.pageSpecificMediaInitialize = function() {
+	StoryScape.initializeLibraryImages = function() {
 		$(".toggle-favorite").click(function(e) {
 			e.preventDefault();
 			var $this = $(this);
@@ -277,7 +278,6 @@ StoryScape.initImageLibrary = function() {
 			});
 		});
 	}
-
 	
 	StoryScape.initGenericLibrary();
 }
@@ -1303,6 +1303,8 @@ StoryScape.initStoryCreation = function() {
 			var $container = $(this).parents('.thumbnail-container');
 			StoryScape.currentStory.getCurrentPage().addImage($container.data('mediaobject-id'), $container.data('mediaobject-url'));
 		});
+		
+		StoryScape.initializeLibraryImages();
 	};
 }
 
