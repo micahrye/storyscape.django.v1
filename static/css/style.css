@@ -173,6 +173,27 @@ label {
 	display:inline;
 }
 
+.splash-header {
+	margin-bottom: 230px;
+	font-size: 70px;
+	margin-left: -30px;
+	text-shadow: 0px 0px 35px #fff, 1px 1px 3px #023F61;
+	color: #0099ee;
+	font-weight: bold;
+	margin-top: -226px;
+}
+.splash-image {
+	margin: -30px -80px 0;
+	width: 1300px;
+	max-width: 1300px;
+}
+.splash-subheader {
+	font-size: 45px;
+	line-height: 60px;
+	font-weight: 400;
+	margin: 0 0 30px;
+}
+
 .reminder-text {
 	font-size:16px;
 	line-height:20px;
