@@ -19,7 +19,10 @@ class Story(models.Model):
     creator_uid = models.IntegerField()
     # creator is same as author
     creator_name = models.CharField(max_length=200)
-    is_published = models.BooleanField(default=False)
+    is_published = models.BooleanField(default=False,blank=True)
+    
+    is_public = models.BooleanField(default=True,blank=True)
+    
     # TODO: should have creation_date and pub_date. The
     # creation date indicates when it was first created 
     # and pub_date is when it is shared, published to 
@@ -62,7 +65,7 @@ class Story(models.Model):
     def get_filesave_path(self):
         story_name = self.title.replace(" ", "_")
         story_zip_name = self.get_zip_name()
-        rurl = settings.SODIIOO_SITE_URL+settings.MEDIA_URL+settings.STORYSCAPE_STORIES_URL_ROOT
+        rurl = settings.SITE_URL+settings.MEDIA_URL+settings.STORYSCAPE_STORIES_URL_ROOT
         story_thumbnail_name = self.get_thumbnail_name()
         creator = User.objects.get(id=self.creator_uid)
         

@@ -8,6 +8,8 @@ urlpatterns = patterns('storyscape.views',
     url(r'^my_stories/$', 'get_user_stories', name='get_user_stories'),
 
     url(r'^stories/$', 'get_stories', name='get_stories'), 
+    url(r'^toggle_visible/$', 'toggle_story_visibility', name='toggle_story_visibility'),
+
     
     url(r'^delete/$', 'delete_story', name='delete_story'), 
     url(r'^save/$', 'save_story', name='save_story'), 
@@ -17,5 +19,6 @@ urlpatterns = patterns('storyscape.views',
     url(r'^preview/(?P<story_id>\d+)/$', 'story_preview', name="story_preview"),
     url(r'^aboutreader/$', 'reader_info', name="reader_info"),
 
+    url(r'^storylist/$', 'story_download_list', name='story_download_list'),
     url(r'^download/$', 'download_story', name='download_story'),
 )

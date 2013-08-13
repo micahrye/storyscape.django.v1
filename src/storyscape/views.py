@@ -204,6 +204,28 @@ def index(request):
                               dict(), 
                               context_instance=RequestContext(request))
 
+
+@ajax_required
+@login_required
+@require_POST
+def toggle_story_visibility(request):
+    user = request.user
+    story_id = request.POST['STORY_ID']
+    
+    story = Story.objects.get(id=story_id, creator_uid=user.id)
+
+    # when you save an Story, the tagging library clears the tags. this is a hack to get around that stupid behavior.
+    tags = Tag.objects.get_for_object(story)
+    tag_string = ",".join(['"{0}"'.format(tag.name) for tag in tags])
+    
+    story.is_public = not story.is_public
+    story.save()
+    
+    Tag.objects.update_tags(story, tag_string)
+    
+    return HttpResponse(simplejson.dumps(dict(is_visible = story.is_public)))
+
+
 @login_required
 @ajax_required
 @require_POST
@@ -421,7 +443,7 @@ def get_stories(request):
     if request.user.is_authenticated() and not get_all:
         query = query.filter(creator_uid = request.user.id)
     else:
-        query = query.filter(is_published = True)
+        query = query.filter(is_published = True, is_public = True)
     
     objs = query.order_by('-id').all()
     
@@ -485,3 +507,13 @@ def download_story(request):
     response['Content-Type'] = ''
     response['X-Sendfile'] = (os.path.join(settings.MEDIA_ROOT, path)).encode('utf-8')
     return response
+
+@require_GET
+def story_download_list(request):
+    '''
+    Called from the app to show all the stories available for download
+    '''
+    
+    stories = Story.objects.filter(is_published=True, is_public = True)
+    download_urls = ", ".join(["{0}/{1}/{2}/{2}.zip".format(settings.SITE_URL, story.creator_name, story.title.replace(' ', '_')) for story in stories])
+    return HttpResponse(download_urls)

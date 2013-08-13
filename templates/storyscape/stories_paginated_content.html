@@ -17,6 +17,12 @@
 						<span class="icon read-story-icon"></span>
 						Preview Story
 					</a>
+					{% if story.is_published and request.user.is_authenticated and story.creator_uid == request.user.id %}
+						<a href="#" class="toggle-visible tipped" title="Toggle Public Visibility">
+							<span class="invisible-icon{% if story.is_public %} hidden{% endif %}"></span>
+							<span class="visible-icon{% if not story.is_public %} hidden{% endif %}"></span>
+						</a>
+					{% endif %}
 				</div>
 		    	<div class='image-tags' > 
 					{% for word in story.tags|slice:":4" %}

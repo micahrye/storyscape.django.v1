@@ -249,6 +249,36 @@ StoryScape.initImageLibrary = function() {
 		StoryScape.loadPaginatedContent("/medialibrary/get_media_objects", StoryScape.CURRENT_PAGE, StoryScape.initializeMediaLibraryContent, data);
 	}
 	
+	StoryScape.pageSpecificMediaInitialize = function() {
+		$(".toggle-favorite").click(function(e) {
+			e.preventDefault();
+			var $this = $(this);
+			var object_id = $this.parents('.thumbnail-container').data("mediaobject-id");
+			$.ajax({
+				type: "POST",
+				url: '/medialibrary/toggle_favorite_mo/',
+				data: {'MEDIA_OBJECT_ID': object_id},
+				success: function() {
+					$this.find('span').toggleClass('hidden');
+				}
+			});
+		});
+		$(".toggle-visible").click(function(e) {
+			e.preventDefault();
+			var $this = $(this);
+			var object_id = $this.parents('.thumbnail-container').data("mediaobject-id");
+			$.ajax({
+				type: "POST",
+				url: '/medialibrary/toggle_visible/',
+				data: {'MEDIA_OBJECT_ID': object_id},
+				success: function() {
+					$this.find('span').toggleClass('hidden');
+				}
+			});
+		});
+	}
+
+	
 	StoryScape.initGenericLibrary();
 }
 
@@ -256,32 +286,7 @@ StoryScape.initImageLibrary = function() {
  * Called after a page of Media Library content is loaded, which happens on page load or filtering or page changing
  */
 StoryScape.initializeMediaLibraryContent = function() {
-	$(".toggle-favorite").click(function(e) {
-		e.preventDefault();
-		var $this = $(this);
-		var object_id = $this.parents('.thumbnail-container').data("mediaobject-id");
-		$.ajax({
-			type: "POST",
-			url: '/medialibrary/toggle_favorite_mo/',
-			data: {'MEDIA_OBJECT_ID': object_id},
-			success: function() {
-				$this.find('span').toggleClass('hidden');
-			}
-		});
-	});
-	$(".toggle-visible").click(function(e) {
-		e.preventDefault();
-		var $this = $(this);
-		var object_id = $this.parents('.thumbnail-container').data("mediaobject-id");
-		$.ajax({
-			type: "POST",
-			url: '/medialibrary/toggle_visible/',
-			data: {'MEDIA_OBJECT_ID': object_id},
-			success: function() {
-				$this.find('span').toggleClass('hidden');
-			}
-		});
-	});
+	
 	StoryScape.initializePaginator();
 	
 	$(".tag-link").each(function() {
@@ -324,7 +329,19 @@ StoryScape.initializeMediaLibraryContent = function() {
 StoryScape.initStoryLibrary = function() {
 	
 	StoryScape.pageSpecificMediaInitialize = function() {
-		
+		$(".toggle-visible").click(function(e) {
+			e.preventDefault();
+			var $this = $(this);
+			var story_id = $this.parents('.thumbnail-container').data("story-id");
+			$.ajax({
+				type: "POST",
+				url: '/storyscape/toggle_visible/',
+				data: {'STORY_ID': story_id},
+				success: function() {
+					$this.find('span').toggleClass('hidden');
+				}
+			});
+		});
 	}
 	
 	StoryScape.reloadPaginatedContent = function() {
@@ -1434,10 +1451,10 @@ StoryScape.animateElement = function($el,code) {
 	        		left = e.pageX + pos_x - drg_w,
 	        		area_top = opt.area.offset().top + (opt.area.outerHeight() - opt.area.height()) / 2 + parseInt($drag.css('margin-top'),10) + opt.area.scrollTop(),
 	            	area_left = opt.area.offset().left + (opt.area.outerWidth() - opt.area.width()) / 2 + parseInt($drag.css('margin-left'),10) + opt.area.scrollLeft();
-	        	top = _.max([top,area_top]);
-	        	left = _.max([left,area_left]);
 	        	top = _.min([top, area_top + opt.area.height() - drg_h]);
 	        	left = _.min([left, area_left + opt.area.width() - drg_w]);
+	        	top = _.max([top,area_top]);
+	        	left = _.max([left,area_left]);
 	            $('.draggable').offset({
 	                top:top,
 	                left:left

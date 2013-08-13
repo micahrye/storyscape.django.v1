@@ -673,8 +673,8 @@ background-color:rgba(0,0,0,0)}
 }
 .edit-text-icon {
 	position:absolute;
-	bottom: -28px;
-	right: -3px;
+	bottom: -29px;
+	left: -5px;
 	height:30px;
 	width:30px;
 	cursor:pointer;
