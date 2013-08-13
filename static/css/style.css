@@ -1146,7 +1146,7 @@ background-color:rgba(0,0,0,0)}
 	margin:0;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1300px) {
 	.form-content {
 		text-align:left;
 	}
@@ -1155,6 +1155,6 @@ background-color:rgba(0,0,0,0)}
 	}
 	.invisible-content {
 		width:100%;
-		min-width:700px;
+		min-width:672px;
 	}
 }
