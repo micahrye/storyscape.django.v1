@@ -20,5 +20,5 @@ urlpatterns = patterns('storyscape.views',
     url(r'^aboutreader/$', 'reader_info', name="reader_info"),
 
     url(r'^storylist/$', 'story_download_list', name='story_download_list'),
-    url(r'^download/$', 'download_story', name='download_story'),
+    url(r'^download/(?P<story_id>\d+)/(?P<zip_name>.*)', 'download_story', name='download_story'),
 )

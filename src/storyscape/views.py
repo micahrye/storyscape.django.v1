@@ -1,5 +1,5 @@
 import commands
-import os
+import os, urllib
 import random
 import logging 
 from collections import OrderedDict
@@ -15,6 +15,7 @@ from django.db.models import Q
 from django.db.models.query import QuerySet
 from decorators import ajax_required
 from django.views.decorators.http import require_POST, require_GET
+from django.core.urlresolvers import reverse
 
 from django.template.loader import render_to_string
 from django.conf import settings
@@ -484,12 +485,14 @@ def story_preview(request, story_id):
 
 
 @require_GET
-def download_story(request):
+def download_story(request, story_id, zip_name):
     '''
-    Used to log downloads of story zips
+    Used to log downloads of story zips, it serves the zip files to the app
+    
+    the reason the zip name is at the end, and we're not using GET parameters for the story name is
+    because the app expects the download url to end with the zip name after a slash
     '''
     
-    story_id = request.GET.get("story_id")
     user_id = request.GET.get("user_id")
     device_id = request.GET.get("device_id","")
     
@@ -508,6 +511,9 @@ def download_story(request):
     response['X-Sendfile'] = (os.path.join(settings.MEDIA_ROOT, path)).encode('utf-8')
     return response
 
+def get_download_url(story):
+    return settings.SITE_URL + reverse("download_story", kwargs = dict(zip_name = story.get_zip_name(), story_id = story.id))
+
 @require_GET
 def story_download_list(request):
     '''
@@ -515,5 +521,5 @@ def story_download_list(request):
     '''
     
     stories = Story.objects.filter(is_published=True, is_public = True)
-    download_urls = ", ".join([story.download_url for story in stories])
+    download_urls = ", ".join([get_download_url(story) for story in stories])
     return HttpResponse(download_urls)
