@@ -121,7 +121,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f733b5e5', e
 	-moz-box-sizing:border-box;
 	box-sizing: border-box;
 }
-header a {
+header a, header span {
 	line-height: 50px;
 	color: #FFF;
 	display: inline-block;
@@ -130,6 +130,11 @@ header a {
 	border-right: 1px solid rgba(50,130,190,.25);
 	text-shadow: 1px 1px 3px rgba(0,80,150,.4);
 	float: left;
+}
+header span {
+	border-left:none;
+	cursor:default;
+	font-size:18px;
 }
 header a.index-link {
 	font-size: 28px;

@@ -10,6 +10,7 @@
 		
 		<div class="right">
 			{% if request.user.is_authenticated %}
+				<span>Hello, {{ request.user.username|title }}!</span>
 				<a href="{% url auth_logout %}">Log Out</a>
 			{% else %}
 				<a href="{% url registration_register %}">Register</a>
