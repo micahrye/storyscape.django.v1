@@ -31,7 +31,7 @@ def upload_file_to(instance, filename):
     
     path += instance.creator.username + '/'
     # instance.user.date_joined.strftime('%Y/%m/%d/')
-    path +=  filename
+    path +=  filename.replace(" ","_")
     
     return path
 
