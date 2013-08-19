@@ -355,6 +355,10 @@ StoryScape.initStoryLibrary = function() {
 
 /******************** Story Models (Requires Backbone.js) ****************************************/
 
+StoryScape.MIN_MO_HEIGHT = 48;
+StoryScape.MIN_MO_WIDTH = 48;
+
+
 /**
  * The class for a dumb model to hold the information of a media object.
  */
@@ -418,16 +422,16 @@ var MediaObject = Backbone.Model.extend({
 		this.set("y",val);
 	},
 	getWidth: function() {
-		return this.get("width");
+		return Math.max(StoryScape.MIN_MO_WIDTH,this.get("width"));
 	},
 	setWidth: function(val) {
-		this.set("width",val);
+		this.set("width",Math.max(StoryScape.MIN_MO_WIDTH,val));
 	},
 	getHeight: function() {
-		return this.get("height");
+		return Math.max(StoryScape.MIN_MO_HEIGHT,this.get("height"));
 	},
 	setHeight: function(val) {
-		this.set("height",val);
+		this.set("height",Math.max(StoryScape.MIN_MO_HEIGHT,val));
 	},
 	getFontSize: function() {
 		return this.get("font_size");
@@ -672,8 +676,8 @@ var Page = Backbone.Model.extend({
 		
 		if (mediaObject.getType() != "text") {
 			$el.resizable({
-				minHeight:48,
-				minWidth:48,
+				minHeight:StoryScape.MIN_MO_HEIGHT,
+				minWidth:StoryScape.MIN_MO_WIDTH,
 				stop: function( event, ui ) {
 					var $el = ui.element;
 					mediaObject.setWidth( $el.innerWidth());

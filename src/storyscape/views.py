@@ -250,7 +250,7 @@ def save_story(request):
     story.title = story_json.get("title",story.title)
     story.genre = DEFAULT_STORY_GENRE
     story.description = story_json.get("description",story.description)
-    story.tags.delete()
+    
     story.tags = story_json.get("tags","")
     story.creator_name = user.username
     

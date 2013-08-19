@@ -1191,3 +1191,9 @@ p.notes {
 	margin-bottom: 5px;
 	margin-right: 35px;
 }
+
+.emphasized {
+	font-size:1.1em;
+	font-weight:bold;
+	text-decoration:underline;
+}
