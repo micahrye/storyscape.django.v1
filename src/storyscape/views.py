@@ -92,7 +92,9 @@ def create_download_media(pmo, story):
     # convert -background none -resize 800x200\! railroad.svg +antialias railroad.png
     cmd_str = 'convert -background none '+ settings.MEDIALIBRARY_URL_ROOT+ url +' -resize '
     cmd_str += str(pmo.width) +'x'+ str(pmo.height)+'\! +antialias png32:'+ settings.STORYSCAPE_IMAGE_URL_ROOT+dload_url
-    commands.getoutput(cmd_str)
+    result = commands.getoutput(cmd_str)
+    if result:
+        logging.error("Error with pmo {0}\n{1}\n\n{2}".format(pmo.id, cmd_str, result))
     pmo.download_media_url = dload_url
 
 def populate_pmo_from_json(pmo_json, z_index, story, page, existing_pmo):
