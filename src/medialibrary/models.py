@@ -9,7 +9,7 @@ from django.conf import settings
 import tagging
 from tagging.fields import TagField
 
-from django.forms import ModelForm, BooleanField
+from django.forms import ModelForm, BooleanField, ValidationError
 
 
 # registered with tagging, decleration near end of file.
@@ -126,6 +126,12 @@ class ImageUploadForm(ModelForm):
 
         return imgobjectform
     
+    def clean_upload_image(self):
+        upload_image = self.cleaned_data.get('upload_image', False)
+        if not self.instance.upload_image == upload_image:
+            if not any([upload_image.name.lower().endswith(ext) for ext in settings.VALID_EXTENSIONS]):
+                raise ValidationError(u'We only accept PNGs and JPEGs at the moment')
+        return upload_image
             
 
 try:

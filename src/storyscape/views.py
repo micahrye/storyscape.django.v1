@@ -1,5 +1,5 @@
 import commands
-import os, urllib
+import os
 import random
 import logging 
 from collections import OrderedDict

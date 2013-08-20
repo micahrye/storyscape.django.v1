@@ -149,7 +149,10 @@ StoryScape.imageUpload = function(dataString) {
         },
         success: function(dataString) {
         	StoryScape.imageUpload(dataString);
-        	StoryScape.reloadPaginatedContent();
+        	var data = JSON.parse(dataString);
+        	if (data.success) {
+            	StoryScape.reloadPaginatedContent();
+        	}
         }
     });
 	$form.find('form').validate({
@@ -158,7 +161,7 @@ StoryScape.imageUpload = function(dataString) {
 				required:true   
 			},
 			upload_image: {
-				accept: "image/*",
+				accept: "png|jpe?g",
 				required: true
 	        }
 		},

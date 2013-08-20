@@ -206,6 +206,7 @@ STORYSCAPE_STORIES_URL_ROOT = 'storyscape_media/stories/'
 STORYSCAPE_IMAGE_URL_ROOT = '/var/www/storyscape/media/storyscape_media/stories/'
 MEDIALIBRARY_URL_ROOT = '/var/www/storyscape/media/'
 
+VALID_EXTENSIONS = ['.png', '.jpeg', '.jpg']
 
 # REGISTRATION VARIABLES
 
