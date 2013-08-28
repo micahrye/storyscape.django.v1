@@ -755,7 +755,12 @@ var Page = Backbone.Model.extend({
 	},
 	
 	updateTextElement: function($el, newText) {
-		var text = newText.replace(/\n/g, '<br/>').replace(/ /g, '&nbsp;')
+        var text;
+        if (! newText) {
+            text = '';
+        } else {
+            text = newText.replace(/\n/g, '<br/>').replace(/ /g, '&nbsp;');
+        }
         var mediaObject = $el.data("mediaObject");
 		var size = this.measureText(text, mediaObject.getFontSize() + "px " + $el.css("font-family"));
 		$el.css(size);
