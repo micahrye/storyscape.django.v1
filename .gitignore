@@ -1,0 +1,34 @@
+# Directories  #
+################
+bin
+media
+
+# Compiled files # 
+##################
+*.pyc
+*.apk
+*.dex
+
+# Packages #
+############
+*.tar 
+*.gz
+*.zip
+*.rar
+*.iso
+*.dmg
+
+# Eclipse IDE config files #
+####################
+.project
+.pydevproject
+*.swp # vim auto save file
+# Logs and databases #
+######################
+
+# OS generated #
+################
+.DS_Store?
+ehthumbs.db
+Icon?
+Thumbs.db
