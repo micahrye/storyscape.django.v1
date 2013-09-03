@@ -1,0 +1,27 @@
+<div id='storyline' class="story-page-controls">
+	<div id='story-nav-wrapper'>
+		<div id='story-nav-controls'>
+			{% if creating %}
+				<span class="pull-left">
+					<button class="btn" id="delete-page"><span class="remove-icon button-icon"></span><span>Delete Page</span></button>
+				</span>
+			{% endif %}
+			
+			<button id='story-prev-page' class="btn btn-small">&laquo; Prev</button>
+			<span id='story-current-page-wrapper' class='story-current-page-wrapper'>
+				<span>Page: </span>
+				<input type="text" id='story-current-page'></input> /
+				<span id='story-total-pages'></span>
+			</span>
+			<button id='story-next-page' class="btn btn-small">Next &raquo;</button>
+			
+			{% if creating %}
+				<span class="pull-right">
+					<button class="btn" id="add-page"><span class="newpage-icon button-icon"></span><span>New Page</span></button>
+				</span>
+			{% endif %}
+			
+		</div>
+		
+	</div>
+</div>

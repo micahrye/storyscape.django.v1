@@ -1,0 +1,44 @@
+{% if stories %}
+	{% spaceless %}
+	<div id="thumbbox" class="thumbnail-group">
+		{% for story in stories %}
+			<div class="thumbnail-container story-thumbnail" data-story-id="{{ story.id }}">
+		    	<div class='image-tags story-thumbnail-title' > 
+		    		<a href="{% url story_preview story.id %}?from=stories">{{ story.title|title }}</a>
+		    	</div>
+				<div class="thumbnail-frame">
+					{% if story.is_published %}
+						<img src='{{ MEDIA_URL }}{{ story.thumb_url }}' class='image-thumbnail' />
+					{% else %}
+						<img src='{{ STATIC_URL }}img/book.png' class='image-thumbnail under-construction-thumbnail' />
+						<span class="under-construction-message">Under Construction</span>
+					{% endif %}
+					<a href="{% url story_preview story.id %}?from=stories" class="media-overlay button display-on-hover">
+						<span class="icon read-story-icon"></span>
+						Preview Story
+					</a>
+					{% if story.is_published and request.user.is_authenticated and story.creator_uid == request.user.id %}
+						<a href="#" class="toggle-visible tipped" title="Toggle Public Visibility">
+							<span class="invisible-icon{% if story.is_public %} hidden{% endif %}"></span>
+							<span class="visible-icon{% if not story.is_public %} hidden{% endif %}"></span>
+						</a>
+					{% endif %}
+				</div>
+		    	<div class='image-tags' > 
+					{% for word in story.tags|slice:":4" %}
+		    			<div class = "tag-link">{{word}}</div>
+		    		{% endfor %}
+		    	</div>
+	    	</div>
+	    {% endfor %}
+	</div>
+	    
+	<div id="pages-wrapper">
+	    <div id='pages'>
+	       <div id="jpaginate"> </div>
+	    </div>
+	</div>
+	{% endspaceless %}
+{% else %}
+	<h1 class="no-found-message">No stories found!</h1>
+{% endif %}

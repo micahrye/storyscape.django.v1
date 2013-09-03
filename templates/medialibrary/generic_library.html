@@ -1,0 +1,66 @@
+<div class="full-width-content" id="image-library">
+	<div class="navbar">
+		<div class="navbar-inner">
+			<form class="navbar-search pull-left" id="search-form">
+			  <input type="text" class="search-query" placeholder="Search" id="search-field">
+			  <div class="search-form-cancel" id="search-form-cancel"></div>
+			</form>
+			
+			{% if request.user.is_authenticated %}
+			<ul class="nav pull-right">
+				<li class="divider-vertical"></li>
+				<li class="{% if not show_personal_library and not show_favorites_library %}active{% endif %}"><a href="#" id="all-images-nav" class="image-type-nav">{{ all_objects_name|title }}</a></li>
+				<li class="divider-vertical"></li>
+				{% if favorite_objects_name %}
+					<li class="{% if show_favorites_library %}active{% endif %}"><a href="#" id="favorite-images-nav" class="image-type-nav">{{ favorite_objects_name|title }}</a></li>
+					<li class="divider-vertical"></li>
+				{% endif %}
+				<li class="{% if show_personal_library %}active{% endif %}"><a href="#" id="my-images-nav" class="image-type-nav">{{ my_objects_name|title }}</a></li>
+				{% if request.user.is_authenticated and show_upload_button %}
+					<li class="divider-vertical"></li>
+					<li class="divider-vertical spaced"></li>
+					<li class=""><a href="#" id="image-upload"><span class="add-file-icon"></span>Upload New</a></li>
+				{% endif %}
+			</ul>
+			{% endif %}
+		</div>
+	</div>
+	<div id="pagination_wrapper">
+		<div id="pagination_loader" class="loading-message">
+			<div id="spinner">
+				<div id="floatingCirclesG">
+					<div class="f_circleG" id="frotateG_01">
+					</div>
+					<div class="f_circleG" id="frotateG_02">
+					</div>
+					<div class="f_circleG" id="frotateG_03">
+					</div>
+					<div class="f_circleG" id="frotateG_04">
+					</div>
+					<div class="f_circleG" id="frotateG_05">
+					</div>
+					<div class="f_circleG" id="frotateG_06">
+					</div>
+					<div class="f_circleG" id="frotateG_07">
+					</div>
+					<div class="f_circleG" id="frotateG_08">
+					</div>
+				</div>
+			</div>
+			<h2>Loading...</h2>
+		</div>
+		<div id="pagination_content" class="paginated-content">
+		</div>
+	</div>
+</div>
+
+
+<script type="text/javascript">
+window.StoryScape = window.StoryScape || {};
+window.StoryScape.SEARCH_TERM = '';
+window.StoryScape.CURRENT_PAGE = 1;
+window.StoryScape.NUMBER_OF_PAGES = 0;
+window.StoryScape.SHOW_ALL_OBJECTS = true;
+window.StoryScape.SHOW_FAVORITES = false;
+
+</script>

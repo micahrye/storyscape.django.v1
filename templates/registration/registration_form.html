@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="form-content">
+	<h1>Account Registration</h1>
+	<p>Just fill out this quick form, then you'll be on your way to creating whatever stories you can imagine!
+	<form method="post" action=".">
+	{% csrf_token %}
+	  {{ form.as_p }}
+	
+	  <input class="btn" type="submit" value="Submit" />
+	</form>
+</div>
+{% endblock %}

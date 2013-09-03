@@ -28,7 +28,13 @@ media
 
 # OS generated #
 ################
-.DS_Store?
+.DS_Store
 ehthumbs.db
 Icon?
 Thumbs.db
+
+# Others #
+##########
+venv
+env
+localsettings.py

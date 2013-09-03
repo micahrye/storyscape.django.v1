@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load json_filters %}
+
+{% block title %}StoryScape - {{ story.title|title }}{% endblock %}
+{% block pagename %}PREVIEW_STORY{% endblock %}
+
+
+{% block content %}
+	
+	<div class="preview-navigation">
+		<a href="{% url stories_library %}">Browse Stories</a>
+		&nbsp;&raquo;&nbsp;
+		{% if from_page == "edit" %}
+		<a href="{% url edit_story story.id %}">Edit</a>
+		&nbsp;&raquo;&nbsp;
+		{% endif %}
+		Preview
+		
+		{% if story.creator_uid == request.user.id %}
+		<span class="pull-right">
+			<a href="{% url edit_story story.id %}">Edit Story</a>
+		</span>
+		{% endif %}
+	</div>
+	<div id='storyscape-container' class="preview-wrapper">
+	 
+		{% spaceless %}
+		<div>
+			<h1 id="story-title-display" class="story-title-display">{{ story.title|title }}</h1>
+			<div></div>
+		</div>
+		<div>
+			<div id='builder-pane-container' class="builder-pane-container preview-container"> 
+				<div class="builder-container">
+					<div id="builder-pane" class="builder-pane">
+					</div>
+					{% include "storyscape/storyline_navigation.html" %} 
+				</div>
+			</div>
+			<div class="preview-guide">
+				<h3>Story Preview</h3>
+				<ul>
+					<li>You can use the Left and Right arrow keys to navigate between pages
+                    <li><span class="emphasized">Click things on the page!</span> Depending on the story, many may react!
+					<li>In the reader, some objects react when you make a sound. Go ahead and press this big green button to see how they'll react.
+				</ul>
+					<button class="btn btn-large btn-success make-sound" id="make-sound">Aaah!</button>
+			</div>
+		</div>
+		{% endspaceless %}
+	</div>
+
+{% endblock %}
+
+{% block extra_css %}
+	<link rel="stylesheet" type='text/css' href="/static/ui-lightness/jquery-ui-1.10.3.custom.min.css">
+{% endblock %}
+
+{% block extra_javascript %}
+	<script type="text/javascript">
+	window.LOAD_STORY_ID = "{{ story.id }}";
+	window.ACTION_CODES = {{ action_codes|jsonify|safe }};
+	window.ACTION_TRIGGER_CODES = {{ action_trigger_codes|jsonify|safe }};
+	
+	window.IS_PREVIEW_MODE = true;
+	</script>
+{% endblock %}
+
+{% block extra_javascript_libraries %}
+	<script type="text/javascript" src="/static/js/jquery.actual.js"></script>
+	<script type="text/javascript" src="/static/ui-lightness/jquery-ui-1.10.3.custom.js"></script>
+{% endblock %}
+

@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% load json_filters %}
+
+{% block title %}StoryScape{% endblock %}
+{% block pagename %}CREATE_STORY{% endblock %}
+
+
+{% block content %}
+	<div class="header-with-nav">
+		<h1 id="story-title-display" class="create-story-title-display" data-default-title="New Story"></h1>
+		<div class="unsaved-message" id="unsaved-message">[Unsaved]</div>
+	</div>
+	
+	<div id='storyscape-container'>
+	 
+		{% spaceless %}
+			<div class="full-width-content"> 
+				<div id='builder-pane-container' class="builder-pane-container"> 
+					<div class="builder-container left">
+						<div id='control-panel' class='control-panel story-controls'>
+							<div class="story-menu">
+								<div class="navbar">
+									<div class="navbar-inner builder-topnav">
+										<h4>Story Controls</h4>
+									</div>
+								</div>
+								<button class="btn" id="save-story"><span class="button-icon save-icon"></span><span>Save</span></button>
+								<button class="btn" id="preview-story"><span class="button-icon preview-icon"></span><span>Preview</span></button>
+								<button class="btn" id="publish-story"><span class="button-icon publish-icon"></span><span>Publish</span></button>
+								<hr>
+								<button class="btn" id="new-story"><span class="button-icon new-icon"></span><span>New</span></button>
+								<button class="btn" id="open-story"><span class="button-icon open-icon"></span><span>Open</span></button>
+								<hr>
+								<button class="btn" id="delete-story"><span class="button-icon delete-icon"></span><span>Delete</span></button>
+							</div>
+						</div>
+					</div>
+					<div class="builder-container middle">
+						<div id="builder-pane" class="builder-pane">
+						</div>
+						{% include "storyscape/storyline_navigation.html" with creating=1 %} 
+					</div>
+					<div class="builder-container right context-controls">
+								<div class="top-buttons">
+									<button class="btn" id="add-text"><span class="button-icon big text-icon"></span><span>Add Text</span></button>
+									<button class="btn" id="add-image"><span class="button-icon big image-icon"></span><span>Add Image</span></button>
+								</div>
+						<div id='control-panel' class='control-panel'>
+							<div class="context-sensitive-menu story-menu">
+								<div class="navbar">
+									<div class="navbar-inner builder-topnav">
+										<h4>Story Settings</h4>
+									</div>
+								</div>
+									
+								<form id='create-story-form' class='story-toolbar-item' >
+								  	<div>
+								    	<label>Title</label>
+								    	<input type="text" class="defaultText" name="title" id="story-title" title="New Story" minlength=2 required>
+								  	</div>
+								  	<div>
+									    <label>Description</label>
+									    <textarea name="description" class="defaultText" id="story-description" title="Enter Description" minlength=2 required></textarea>
+								  	</div>
+								  	<div>
+									    <label>Tags</label>
+									    <textarea name="tags" class="defaultText" id="story-tags" title="Enter Story Tags" minlength=2 required></textarea>
+								  	</div>
+								</form>
+							</div>
+							<div class="context-sensitive-menu object-menu hidden">
+								<div class="navbar">
+									<div class="navbar-inner builder-topnav">
+										<h4 class="settings-title"></h4>
+									</div>
+								</div>
+								<div class="text-settings">
+									<h4>Font:</h4>
+									<select id="font-size" class="short">
+										{% with "12 16 18 22 24 28 32 36 42 48 52 58 64 72 96 124" as sizes %}
+											{% for size in sizes.split %}
+												<option value="{{ size }}">{{ size }}</option>
+											{% endfor %}
+										{% endwith %}
+									</select>
+									<input type="color" name="color" id="color-picker">
+									<hr>
+								</div>
+								<div class="buttons">
+									<button class="btn" id="send-forward"><span class="button-icon big forward-icon"></span><span>Forward</span></button>
+									<button class="btn" id="send-backward"><span class="button-icon big backward-icon"></span><span>Backward</span></button>
+									<button class="btn" id="send-front"><span class="button-icon big front-icon"></span><span>To Front</span></button>
+									<button class="btn" id="send-back"><span class="button-icon big back-icon"></span><span>To Back</span></button>
+								</div>
+								<hr>
+								<div class="animation-section">
+									<select name="animation" id="animation-select">
+										<option value='0'>No Animation</option>
+										{% for name, value in action_codes.items %}
+											<option value='{{ value }}'>{{ name }}</option>
+										{% endfor %}
+									</select>
+									on
+									<select class="short" name="animation" id="animation-trigger-select">
+										{% for name, value in action_trigger_codes.items %}
+											<option value='{{ value }}'>{{ name }}</option>
+										{% endfor %}
+									</select>
+								</div>
+								<button class="btn preview-button" id="preview-animation-button">Preview</button>
+								<hr>
+								<div class="animation-section">
+									Go to page
+									<select class="short" id="goto-on-touch-select"></select>
+									on touch
+								</div>
+							</div>
+									
+									
+						</div>
+					</div>
+				</div>
+			</div>
+		{% endspaceless %}
+		 
+		{% include "medialibrary/image_library.html" %}
+	
+	</div>
+	
+	<script type="template" id="story-list-item">
+		<a href="#" class="load-story-option" data-story-id="<%=story_id %>"><%= title %>&nbsp;</a>
+	</script>
+	
+	<div class="hidden">
+		<form id="update-text-form" class="update-text-form">
+			<textarea name="text" id="update-text-field"></textarea>
+			<button class="btn">Update Text</button>
+		</form>
+	</div>
+{% endblock %}
+
+{% block extra_css %}
+	<link rel="stylesheet" type='text/css' href="/static/ui-lightness/jquery-ui-1.10.3.custom.min.css">
+	<link rel="stylesheet" type='text/css' href="/static/css/spectrum.css">
+{% endblock %}
+
+{% block extra_javascript %}
+	<script type="text/javascript">
+	window.LOAD_STORY_ID = {% if story %}"{{ story.id }}"{% else %}null{% endif %};
+	window.NEED_ADD_BUTTONS = true;
+	window.ACTION_CODES = {{ action_codes|jsonify|safe }};
+	window.ACTION_TRIGGER_CODES = {{ action_trigger_codes|jsonify|safe }};
+	window.USERNAME = "{{ request.user.username }}";
+	</script>
+{% endblock %}
+
+{% block extra_javascript_libraries %}
+	<script type="text/javascript" src="/static/js/jquery.actual.js"></script>
+	<script type="text/javascript" src="/static/js/spectrum.js"></script>
+	<script type="text/javascript" src="/static/ui-lightness/jquery-ui-1.10.3.custom.js"></script>
+{% endblock %}
+

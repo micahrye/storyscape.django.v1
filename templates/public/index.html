@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+	<img class="splash-image" src="/static/img/splash_header.png">
+	<h1 class="splash-header">StoryScape</h1>
+	<h2 class="splash-subheader">Stories like you've never seen them before!</h2>
+	
+	<p>With StoryScape you can:
+	<ul>
+		<li>Create your own interactive stories!
+		<li>Browse and read the stories created by your friends, strangers, or us here at StoryScape!
+		<li>Modify any story in real time, capturing pictures and sounds with your mobile device!
+	</ul>
+	<hr>
+	<p>Interested? <a href="{% url reader_info %}">find out more information here!</a> and be sure to <a href="{% url registration_register %}">Sign up</a>!
+{% endblock %}

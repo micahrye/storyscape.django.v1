@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load tagging_tags %}
+
+{% block pagename %}STORY_LIBRARY{% endblock %}
+
+{% block content %}
+<h1>Story Library</h1>
+
+{% include "medialibrary/generic_library.html" with all_objects_name="All Published Stories" my_objects_name="My Stories" %}
+{% endblock %}

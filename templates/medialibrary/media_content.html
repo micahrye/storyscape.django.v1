@@ -1,0 +1,52 @@
+{% if mediaobjects %}
+	{% spaceless %}
+	<div id="thumbbox" class="thumbnail-group">
+		{% for mo in mediaobjects %}
+			<div class="thumbnail-container" data-mediaobject-id="{{ mo.id }}" data-mediaobject-url='{{ MEDIA_URL }}{{ mo.url }}'>
+				<div class="thumbnail-frame">
+					{% if not need_add_buttons %}
+						<a href="{{ MEDIA_URL }}{{ mo.url }}" class="image-thumbnail-link" title='{{ mo.tags|join:" " }}'>
+							<img src='{{ MEDIA_URL }}{{ mo.url }}' class='image-thumbnail' />
+						</a>
+					{% else %}
+						<img src='{{ MEDIA_URL }}{{ mo.url }}' class='image-thumbnail' />
+						<div class="media-overlay add-button display-on-hover">
+							<span class="icon add-icon"></span>
+							Add Image to Page
+						</div>
+						<div class="media-overlay been-added">
+							<span class="icon success-icon"></span>
+							Image Added!
+						</div>
+					{% endif %}
+					{% if request.user.is_authenticated %}
+						<a href="#" class="toggle-favorite tipped" title="Favorite Image">
+							<span class="unfavorite-icon{% if not mo.id in favorited_ids %} hidden{% endif %}"></span>
+							<span class="favorite-icon{% if mo.id in favorited_ids %} hidden{% endif %}"></span>
+						</a>
+					{% endif %}
+					{% if request.user.is_authenticated and mo.creator_id == request.user.id %}
+						<a href="#" class="toggle-visible tipped" title="Toggle Public Visibility">
+							<span class="invisible-icon{% if mo.license %} hidden{% endif %}"></span>
+							<span class="visible-icon{% if not mo.license %} hidden{% endif %}"></span>
+						</a>
+					{% endif %}
+				</div>
+		    	<div class='image-tags' > 
+					{% for word in mo.tags|slice:":4" %}
+		    			<div class = "tag-link">{{word}}</div>
+		    		{% endfor %}
+		    	</div>
+	    	</div>
+	    {% endfor %}
+	</div>
+	    
+	<div id="pages-wrapper">
+	    <div id='pages'>
+	       <div id="jpaginate"> </div>
+	    </div>
+	</div>
+	{% endspaceless %}
+{% else %}
+	<h1 class="no-found-message">No images found!</h1>
+{% endif %}
