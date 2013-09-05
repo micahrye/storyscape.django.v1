@@ -17,6 +17,8 @@ from settings import * #@UnusedWildImport
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
+INTERNAL_IPS = ('127.0.0.1',)
+
 STORYSCAPE_IMAGE_URL_ROOT = '/opt/mit/media/storyscape_media/stories/' 
 MEDIALIBRARY_URL_ROOT = '/opt/mit/media/' 
 MEDIA_ROOT = '/opt/mit/media/'
