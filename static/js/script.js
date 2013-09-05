@@ -41,7 +41,33 @@ $(document).ready(function () {
 	
 	$(".tipped").tipsy();
 	
+	if (StoryScape.CHECK_TASKS) {
+		StoryScape.runTaskResultChecking()
+	}
+	
 });
+
+StoryScape.runTaskResultChecking = function() {
+	function checkTaskStatus() {
+		$.ajax({
+			type: "GET",
+			url: "/storyscape/checktasks/",
+			success: function(result) {
+				var data = JSON.parse(result);
+				
+				if (! data.has_tasks) {
+					clearInterval(taskCheckInterval);
+				}
+				
+				_.each(data.finished_messages, function(message) {
+					var type = message[0], words = message[1];
+					toastr[type](words);
+				})
+			}
+		});
+	}
+	var taskCheckInterval = setInterval(checkTaskStatus, 10000);
+}
 
 
 StoryScape.initializeDefaultText = function() {
@@ -1249,13 +1275,13 @@ StoryScape.initStoryCreation = function() {
 		var $this = $(this);
 		$this.prop('disabled', true);
 		
-		toastr["info"]("Publishing your story. This could take a bit.");
 		$.ajax("/storyscape/publish/",
 			{
 				type: "POST",
 				data:{story_id: StoryScape.currentStory.getStoryId()},
 				success:_.bind(function(response) {
-					toastr["success"]("Story successfully published to the app!");
+					StoryScape.runTaskResultChecking();
+					toastr["info"]("Your story is queued to be published; you will be notified when it's finished!");
 					$this.prop('disabled', false);
 				}, this),
 				error:_.bind(function() {

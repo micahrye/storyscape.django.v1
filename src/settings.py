@@ -3,7 +3,7 @@
 import os
 
 filepath = os.path.dirname(os.path.realpath(__file__))
-
+BASE_FILEPATH = filepath
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
@@ -138,6 +138,8 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
+    'djcelery',
+    'kombu.transport.django',
     'south',
     'tagging',
     'medialibrary',
@@ -225,3 +227,9 @@ LOGIN_REDIRECT_URL = '/'
 
 FORCE_LOWERCASE_TAGS = True
 MAX_TAG_LENGTH = 20
+
+# CELERY
+
+import djcelery
+djcelery.setup_loader()
+BROKER_URL = 'django://'

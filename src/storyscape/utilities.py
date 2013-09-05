@@ -1,5 +1,8 @@
-import commands
+import commands, logging, random
 import os
+
+from storyscape.models import Story, PageMediaObject, MediaObject
+from django.conf import settings
 
 ''' Utility methods used by storyscape. 
     Developer: Micah Eckhardt
@@ -7,6 +10,92 @@ import os
 '''
 
 STORY_THUMBNAIL_SIZE = 180
+
+
+def create_download_media(pmo, story):
+    dload_url = story.creator_name+'/'
+    dload_url += story.title.replace(" ", "_") + '/'
+    if not os.path.exists(os.path.join(settings.STORYSCAPE_IMAGE_URL_ROOT, dload_url)): 
+        os.makedirs(os.path.join(settings.STORYSCAPE_IMAGE_URL_ROOT, dload_url))  
+
+    png_url = pmo.media_object.url
+    png_url = png_url.replace('/mod/', '/org/')
+    svg_url = png_url.replace('/png/', '/svg/').replace('.png', '.svg')
+    jpg_url = png_url.replace('/png/', '/jpg/').replace('.png', '.jpg')
+    not_svg = False
+    try:
+        svg_mo = MediaObject.objects.get(url=svg_url)
+        url = svg_mo.url
+    except MediaObject.DoesNotExist:
+        url = png_url
+        not_svg = True
+    if not_svg: 
+        try:
+            jpg_mo = MediaObject.objects.get(url=jpg_url)
+            url = jpg_mo.url
+        except MediaObject.DoesNotExist:
+            url = png_url
+
+    #if there is a svg file to use for image resize/creation use it 
+    if url[len(url)-3:].lower() == 'svg':          
+        dload_url += "/" + os.path.split(url)[1][:-3]+'png'
+    elif url[len(url)-3:].lower() == 'jpg': 
+        dload_url += "/" + os.path.split(url)[1][:-3]+'png'
+    else:
+        dload_url += "/" + os.path.split(url)[1]
+        
+    # if the file already exists we want to create a different named file
+    for _ in range(0,10):
+        if os.path.exists(settings.STORYSCAPE_IMAGE_URL_ROOT+dload_url) or PageMediaObject.objects.filter(download_media_url=dload_url).count():
+            dload_url = dload_url[:-4]+"_"+str(random.randint(0,100000))+".png"
+        else: 
+            break
+        pmo.download_media_url = dload_url
+    # convert -background none -resize 800x200\! railroad.svg +antialias railroad.png
+    cmd_str = 'convert -background none '+ settings.MEDIALIBRARY_URL_ROOT+ url +' -resize '
+    cmd_str += str(pmo.width) +'x'+ str(pmo.height)+'\! +antialias png32:'+ settings.STORYSCAPE_IMAGE_URL_ROOT+dload_url
+    result = commands.getoutput(cmd_str)
+    if result:
+        logging.error("Error with pmo {0}\n{1}\n\n{2}".format(pmo.id, cmd_str, result))
+    pmo.download_media_url = dload_url
+
+
+def publish_story(story):
+    
+    story.is_published = False 
+
+    file_save_path = story.get_filesave_path()
+    
+    remove_dir_files(file_save_path, []) 
+    
+    pmos = PageMediaObject.objects.filter(page__story = story, media_type='image')
+    
+    for pmo in pmos:
+        create_download_media(pmo, story)
+        pmo.save()
+    
+    
+    create_story_thumbnail(story, file_save_path)
+    # story.save()
+    try: 
+        story_to_xml(story, file_save_path)
+    except IOError:
+        msg = 'error creating xml version of story'
+        story.is_published = False 
+        
+    create_story_nomedia_file(file_save_path)
+    if not create_story_thumbnail(story, file_save_path):
+        msg = 'error creating thumbnail'
+        story.is_published = False 
+    
+    if not create_story_zip(story, file_save_path):
+        msg = 'error creating downloadable media'
+        story.is_published = False
+    else: 
+        story.is_published = True
+    
+    story.save()
+
 
 def story_to_xml(story, save_path):
     pages = story.page_set.order_by('page_number')
