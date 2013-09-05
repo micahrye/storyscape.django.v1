@@ -4,6 +4,8 @@ import os
 from storyscape.models import Story, PageMediaObject, MediaObject
 from django.conf import settings
 
+from unidecode import unidecode
+
 ''' Utility methods used by storyscape. 
     Developer: Micah Eckhardt
     Creation date: 08-21-12
@@ -12,8 +14,9 @@ from django.conf import settings
 STORY_THUMBNAIL_SIZE = 180
 
 def create_download_media(pmo, story):
-    dload_url = story.creator_name+'/'
-    dload_url += story.title.replace(" ", "_") + '/'
+    dload_url = story.creator_name+u'/'
+    dload_url += story.title.replace(" ", "_") + u'/'
+    dload_url = unidecode(dload_url)
     if not os.path.exists(os.path.join(settings.STORYSCAPE_IMAGE_URL_ROOT, dload_url)): 
         os.makedirs(os.path.join(settings.STORYSCAPE_IMAGE_URL_ROOT, dload_url))  
 
@@ -99,6 +102,7 @@ def publish_story(story):
 def story_to_xml(story, save_path):
     pages = story.page_set.order_by('page_number')
     title = story.title.lower().replace(' ', '')
+    title = unidecode(title)
     file_name = save_path + title + '.xml'
     try:
         f = open(file_name, 'w')
@@ -108,11 +112,11 @@ def story_to_xml(story, save_path):
     f.write('<?xml version="1.0"?> \n')
     f.write('<book id="' + str(story.id) + '">' + '\n')
     f.write('    <author>' + story.creator_name + '</author> \n')
-    f.write('    <title>' + story.title + '</title> \n')
+    f.write('    <title>' + story.title.encode('utf8') + '</title> \n')
     f.write('    <genre>' + story.genre + '</genre> \n')
     f.write('    <pub_date>' + str(story.pub_date.year) + '-' + str(story.pub_date.day)
             + '-' + str(story.pub_date.month) + '</pub_date> \n')
-    f.write('    <description>' + story.description + '</description> \n')
+    f.write('    <description>' + story.description.encode('utf8') + '</description> \n')
     f.write('    <book_pages number_pages="' + str(len(pages)) + '"> \n')
 
     for p in pages:
@@ -219,6 +223,7 @@ def create_story_thumbnail(story, save_path):
 def create_story_zip(story, save_path):
     # replace spaces with underscores 
     title = story.title.replace(" ", "_") 
+    title = unidecode(title)
     cmd = 'zip -rj ' + save_path + title + '.zip' + ' ' + save_path
     result = commands.getoutput( cmd ) 
     return False if (result.find('warning') >= 0 or result.find('error') >= 0) else True

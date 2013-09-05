@@ -7,6 +7,8 @@ import tagging
 
 from medialibrary.models import MediaObject
 
+from unidecode import unidecode
+
 DEFAULT_STORY_GENRE = "Children"
 
 # Create your models here.
@@ -73,7 +75,7 @@ class Story(models.Model):
         rurl = settings.STORYSCAPE_STORIES_URL_ROOT
         self.thumb_url = rurl+creator.username+'/'+story_name+'/'+story_thumbnail_name
         file_save_path = settings.STORYSCAPE_IMAGE_URL_ROOT + self.creator_name +'/' + story_name + '/' 
-        return file_save_path
+        return unidecode(file_save_path)
 
 class Page(models.Model):
     # each page is associated with a particular Story

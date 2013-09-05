@@ -282,15 +282,15 @@ def check_finished_tasks(request):
     
     if queued_tasks:
         for result in queued_tasks:
-            print result.result, result.successful()
             if result.ready():
                 if result.successful():
                     finished_messages.append(['success',result.result])
+                else:
+                    finished_messages.append(['error',"Sorry, there was an issue with the story publishing... We're looking into it!"])
             else:
                 still_queued_tasks.append(result)
         
         request.session['queued_tasks'] = still_queued_tasks
-    print still_queued_tasks
     
     return HttpResponse(simplejson.dumps(dict(has_tasks = bool(still_queued_tasks), finished_messages = finished_messages)))
 
