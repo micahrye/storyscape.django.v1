@@ -41,8 +41,39 @@ $(document).ready(function () {
 	
 	$(".tipped").tipsy();
 	
+<<<<<<< HEAD
 });
 
+=======
+	if (StoryScape.CHECK_TASKS) {
+		StoryScape.runTaskResultChecking()
+	}
+	
+});
+
+StoryScape.runTaskResultChecking = function() {
+	function checkTaskStatus() {
+		$.ajax({
+			type: "GET",
+			url: "/storyscape/checktasks/",
+			success: function(result) {
+				var data = JSON.parse(result);
+				
+				if (! data.has_tasks) {
+					clearInterval(taskCheckInterval);
+				}
+				
+				_.each(data.finished_messages, function(message) {
+					var type = message[0], words = message[1];
+					toastr[type](words);
+				})
+			}
+		});
+	}
+	var taskCheckInterval = setInterval(checkTaskStatus, 10000);
+}
+
+>>>>>>> 987324e5adb6e46fdf2bfe45668284e9652e1f10
 
 StoryScape.initializeDefaultText = function() {
 	$(".defaultText").not(".initialized").focus(function(srcc) {
@@ -1249,13 +1280,21 @@ StoryScape.initStoryCreation = function() {
 		var $this = $(this);
 		$this.prop('disabled', true);
 		
+<<<<<<< HEAD
 		toastr["info"]("Publishing your story. This could take a bit.");
+=======
+>>>>>>> 987324e5adb6e46fdf2bfe45668284e9652e1f10
 		$.ajax("/storyscape/publish/",
 			{
 				type: "POST",
 				data:{story_id: StoryScape.currentStory.getStoryId()},
 				success:_.bind(function(response) {
+<<<<<<< HEAD
 					toastr["success"]("Story successfully published to the app!");
+=======
+					StoryScape.runTaskResultChecking();
+					toastr["info"]("Your story is queued to be published; you will be notified when it's finished!");
+>>>>>>> 987324e5adb6e46fdf2bfe45668284e9652e1f10
 					$this.prop('disabled', false);
 				}, this),
 				error:_.bind(function() {

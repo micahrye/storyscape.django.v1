@@ -26,6 +26,12 @@
 	<script type="text/javascript">
 	StoryScape = window.StoryScape || {};
 	PAGE_NAME = "{% block pagename %}{% endblock %}";
+<<<<<<< HEAD
+=======
+	{% if request.user.is_authenticated %}
+	StoryScape.CHECK_TASKS = true;
+	{% endif %}
+>>>>>>> 987324e5adb6e46fdf2bfe45668284e9652e1f10
 	</script>
 	{% block extra_javascript %}{% endblock %}
 	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>

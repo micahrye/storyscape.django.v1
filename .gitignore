@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 venv
 .project
 .pydevproject
@@ -5,3 +6,45 @@ venv
 .DS_Store
 */.DS_Store
 *.pyc
+=======
+# Directories  #
+################
+bin
+media
+
+# Compiled files # 
+##################
+*.pyc
+*.apk
+*.dex
+
+# Packages #
+############
+*.tar 
+*.gz
+*.zip
+*.rar
+*.iso
+*.dmg
+
+# Eclipse IDE config files #
+####################
+.project
+.pydevproject
+*.swp # vim auto save file
+# Logs and databases #
+######################
+
+# OS generated #
+################
+.DS_Store
+ehthumbs.db
+Icon?
+Thumbs.db
+
+# Others #
+##########
+venv
+env
+localsettings.py
+>>>>>>> 987324e5adb6e46fdf2bfe45668284e9652e1f10

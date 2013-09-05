@@ -1,7 +1,11 @@
 import commands
 import os
 import random
+<<<<<<< HEAD
 import logging 
+=======
+import logging, subprocess
+>>>>>>> 987324e5adb6e46fdf2bfe45668284e9652e1f10
 from collections import OrderedDict
 
 from django.http import HttpResponse, Http404
@@ -24,6 +28,10 @@ import simplejson
 
 from storyscape.models import Story, PageMediaObject, Page, StoryDownload, DEFAULT_STORY_GENRE
 from storyscape import utilities
+<<<<<<< HEAD
+=======
+from storyscape import tasks
+>>>>>>> 987324e5adb6e46fdf2bfe45668284e9652e1f10
 from medialibrary.models import MediaLibrary, MediaObject
 from medialibrary.views import NUM_ITEMS_PER_PAGE
 
@@ -50,6 +58,7 @@ ACTION_CODES = OrderedDict([('Fade Out',105),
                 ]);
 GOTO_PAGE_ACTION_CODE = 200
 
+<<<<<<< HEAD
 def create_download_media(pmo, story):
     dload_url = story.creator_name+'/'
     dload_url += story.title.replace(" ", "_") + '/'
@@ -96,6 +105,8 @@ def create_download_media(pmo, story):
     if result:
         logging.error("Error with pmo {0}\n{1}\n\n{2}".format(pmo.id, cmd_str, result))
     pmo.download_media_url = dload_url
+=======
+>>>>>>> 987324e5adb6e46fdf2bfe45668284e9652e1f10
 
 def populate_pmo_from_json(pmo_json, z_index, story, page, existing_pmo):
     
@@ -303,6 +314,7 @@ def publish_story(request):
     Called from the create page
     '''
     
+<<<<<<< HEAD
     msg = 'something unhelpful went wrong'
     
     story = Story.objects.get(id=request.POST['story_id'])
@@ -343,6 +355,43 @@ def publish_story(request):
     story.save()
 
     return HttpResponse(msg)
+=======
+    story = Story.objects.get(id=request.POST['story_id'])
+    
+    if story:
+        result = tasks.publish_story.delay(story.id)
+        queued_tasks = request.session.get('queued_tasks', [])
+        queued_tasks.append(result)
+        request.session['queued_tasks'] = queued_tasks
+    
+    return HttpResponse('success')
+
+@login_required
+@ajax_required
+@require_GET
+def check_finished_tasks(request):
+    '''
+    This gets called once per page load if the user is logged in, and periodically after that if (a) the user has queued a task, or (b) there are tasks that have been queued
+    '''
+    queued_tasks = request.session.get('queued_tasks', [])
+    
+    still_queued_tasks = []
+    finished_messages = []
+    
+    if queued_tasks:
+        for result in queued_tasks:
+            print result.result, result.successful()
+            if result.ready():
+                if result.successful():
+                    finished_messages.append(['success',result.result])
+            else:
+                still_queued_tasks.append(result)
+        
+        request.session['queued_tasks'] = still_queued_tasks
+    print still_queued_tasks
+    
+    return HttpResponse(simplejson.dumps(dict(has_tasks = bool(still_queued_tasks), finished_messages = finished_messages)))
+>>>>>>> 987324e5adb6e46fdf2bfe45668284e9652e1f10
 
 
 @login_required
