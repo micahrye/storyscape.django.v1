@@ -4,5 +4,9 @@ django-tagging==0.3.1
 django-registration==1.0
 psycopg2==2.5.1
 Pillow==2.1.0
+<<<<<<< HEAD
+simplejson==3.3.0
+=======
 simplejson==3.3.0
 django-celery==3.0.23
+>>>>>>> 987324e5adb6e46fdf2bfe45668284e9652e1f10

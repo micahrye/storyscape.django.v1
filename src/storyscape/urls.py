@@ -10,7 +10,10 @@ urlpatterns = patterns('storyscape.views',
     url(r'^stories/$', 'get_stories', name='get_stories'), 
     url(r'^toggle_visible/$', 'toggle_story_visibility', name='toggle_story_visibility'),
 
+<<<<<<< HEAD
+=======
     url(r'^checktasks/$', 'check_finished_tasks', name='check_finished_tasks'), 
+>>>>>>> 987324e5adb6e46fdf2bfe45668284e9652e1f10
     
     url(r'^delete/$', 'delete_story', name='delete_story'), 
     url(r'^save/$', 'save_story', name='save_story'), 

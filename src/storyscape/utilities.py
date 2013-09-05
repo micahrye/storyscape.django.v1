@@ -1,9 +1,15 @@
+<<<<<<< HEAD
+import commands
+import os
+
+=======
 import commands, logging, random
 import os
 
 from storyscape.models import Story, PageMediaObject, MediaObject
 from django.conf import settings
 
+>>>>>>> 987324e5adb6e46fdf2bfe45668284e9652e1f10
 ''' Utility methods used by storyscape. 
     Developer: Micah Eckhardt
     Creation date: 08-21-12
@@ -11,6 +17,8 @@ from django.conf import settings
 
 STORY_THUMBNAIL_SIZE = 180
 
+<<<<<<< HEAD
+=======
 
 def create_download_media(pmo, story):
     dload_url = story.creator_name+'/'
@@ -97,6 +105,7 @@ def publish_story(story):
     story.save()
 
 
+>>>>>>> 987324e5adb6e46fdf2bfe45668284e9652e1f10
 def story_to_xml(story, save_path):
     pages = story.page_set.order_by('page_number')
     title = story.title.lower().replace(' ', '')
