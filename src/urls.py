@@ -23,6 +23,8 @@ urlpatterns = patterns('',
     url(r'^accounts/', include('registration.backends.default.urls')),
     url(r'^accounts', redirect_to, {'url': '/accounts/register/'}),
     url(r'^$', 'storyscape.views.index', name='index'),
+    
+    url(r'^download/app/storyscape/$', 'storyscape.views.download_reader_app'),
 )
 
 

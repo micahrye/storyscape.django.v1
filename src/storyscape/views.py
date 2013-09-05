@@ -475,3 +475,6 @@ def story_download_list(request):
     stories = Story.objects.filter(is_published=True, is_public = True)
     download_urls = ", ".join([get_download_url(story) for story in stories])
     return HttpResponse(download_urls)
+
+def download_reader_app(request):
+    return render_to_response('storyscape/reader_app.html', {}, context_instance=RequestContext(request))
