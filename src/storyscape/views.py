@@ -437,6 +437,38 @@ def story_preview(request, story_id):
                               context_instance=RequestContext(request) )
 
 
+def api_list_stories(request): 
+     
+    stories = Story.objects.filter(is_published=True)
+    stories = story_list_to_json(stories)
+    if 'callback' in request.REQUEST:
+        stories = request.REQUEST['callback'] + '('+stories+');'
+        return HttpResponse(stories, mimetype='application/json') 
+    
+    return HttpResponse( stories )
+
+
+@require_GET
+def api_get_story(request): 
+    
+    story_id = request.GET.get('STORY_ID', -1)
+    if 'STORY_ID' in request.GET:
+        try: 
+            story = Story.objects.get(id=story_id)
+        except Story.DoesNotExist:
+            return HttpResponse('story id does not exist')
+        story = story_to_json(story)
+        '''
+        If the request is for jsonp we handle it here
+        '''
+        if 'callback' in request.REQUEST:
+            story = request.REQUEST['callback'] + '('+story+');'
+            return HttpResponse(story, mimetype='application/json') 
+        return HttpResponse( story )    
+    
+    return HttpResponse("nothing to see here")
+
+
 @require_GET
 def download_story(request, story_id, zip_name):
     '''
