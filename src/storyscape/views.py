@@ -12,6 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
 
+
 from django.db.models.query import QuerySet
 from decorators import ajax_required
 from django.views.decorators.http import require_POST, require_GET
@@ -50,6 +51,11 @@ ACTION_CODES = OrderedDict([('Fade Out',105),
                 ('Slide Left',116),
                 ('Slide Right',101),
                 ]);
+
+KINECT_TRIGGER_CODES = OrderedDict([ ('Jump', 500), 
+                                    ('Wave', 501),
+                                    ('Nod', 502), ])
+
 GOTO_PAGE_ACTION_CODE = 200
 
 def populate_pmo_from_json(pmo_json, z_index, story, page, existing_pmo):
@@ -261,7 +267,14 @@ def publish_story(request):
     story = Story.objects.get(id=request.POST['story_id'])
     
     if story:
+        '''
+        this line will error becase static code-analsys only sees what 
+        you see, not runtime info that would result in delay being there. 
+        You may want to change eclipse settings to ignore this. 
+        Window -> Preferences -> PyDev -> Editor -> Code Analysis -> Imports -> Import not found -> Ignore
+        '''
         result = tasks.publish_story.delay(story.id)
+        
         queued_tasks = request.session.get('queued_tasks', [])
         queued_tasks.append(result)
         request.session['queued_tasks'] = queued_tasks
@@ -340,8 +353,18 @@ def load_story(request):
     
     return HttpResponse(story_json)
 
+
 @login_required
-def create_story(request, story_id=None):
+def create_kinect_story(request, story_id=None):
+    
+    rtn_data = create_story(request, story_id, True)
+    rtn_data['action_trigger_codes'] = KINECT_TRIGGER_CODES 
+    
+    return render_to_response( 'storyscape/create_kinect.html', rtn_data, 
+                               context_instance=RequestContext(request) )
+
+@login_required
+def create_story(request, story_id=None, kinect=False):
     '''
     Called from the create page to save a story. contrary to the name, can be used to save an existing story. um, sorry.
     '''
@@ -357,15 +380,18 @@ def create_story(request, story_id=None):
 
     ml = MediaLibrary.objects.get(user=user)
     media_objects = ml.media_object.filter(Q(format__label='png') | Q(format__label='jpg')).order_by('-id')[:NUM_ITEMS_PER_PAGE]
-
     
-    return render_to_response('storyscape/create.html',
-                 {'user': request.user, 
+    rtn_data = {'user': request.user, 
                   'story': story,
                   'show_favorites_library': True,
                   "media_objects": media_objects,
                   'action_codes':ACTION_CODES,
-                  'action_trigger_codes':ACTION_TRIGGER_CODES},
+                  'action_trigger_codes':ACTION_TRIGGER_CODES}
+    if kinect:
+        return rtn_data
+    
+    return render_to_response('storyscape/create.html',
+                 rtn_data,
                  context_instance=RequestContext(request))
 
 def stories_library(request):

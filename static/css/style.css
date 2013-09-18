@@ -1197,3 +1197,10 @@ p.notes {
 	font-weight:bold;
 	text-decoration:underline;
 }
+
+body.kinect-creator .context-controls .control-panel {
+	height:500px;
+}
+body.kinect-creator .control-panel #kinect-codes-textarea {
+	width:250px
+}
