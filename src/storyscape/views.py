@@ -77,6 +77,7 @@ def populate_pmo_from_json(pmo_json, z_index, story, page, existing_pmo):
             # we have the format #CCC and we need #CCCCCC
             pmo.font_color = "".join(["{0}{0}".format(x) for x in pmo.font_color])[1:]
 
+    print 'this is in the code'
     pmo.anime_code = pmo_json.get('action_code') or pmo.anime_code
     pmo.animate_on = pmo_json.get('action_trigger_code') or pmo.animate_on
     pmo.goto_page = pmo_json.get('page_on_touch') or pmo.goto_page
@@ -91,9 +92,14 @@ def populate_pmo_from_json(pmo_json, z_index, story, page, existing_pmo):
     pmo.width = pmo_json.get('width') or pmo.width
     pmo.height = pmo_json.get('height') or pmo.height
     pmo.assoc_text = pmo_json.get('text') or pmo.assoc_text
+    pmo.custom_commands = pmo_json.get('custom_commands') or pmo.custom_commands
     pmo.media_type = pmo_json.get('type') or pmo.media_type
     pmo.page = page
-
+    
+    print 'from_json: '
+    print pmo_json.get('custom_commands')
+    print 'pmo: '
+    print pmo.custom_commands
     
     pmo.save()
     
@@ -139,6 +145,7 @@ def pmo_to_json(pmo):
                     width = pmo.width,
                     height = pmo.height,
                     text = pmo.assoc_text,
+                    custom_commands = pmo.custom_commands,
                     )
     if pmo.media_object:
         pmo_json['url'] = settings.MEDIA_URL + pmo.media_object.url

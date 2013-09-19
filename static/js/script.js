@@ -515,6 +515,12 @@ var MediaObject = Backbone.Model.extend({
 	setObjectId: function(val) {
 		this.set("object_id",val);
 	},
+	getCustomComands: function(){
+		return this.get("custom_commands");
+	}, 
+	setCustomComands: function(val){
+		this.set("custom_commands", val);
+	}
 });
 
 /**
@@ -720,6 +726,7 @@ var Page = Backbone.Model.extend({
 		$('.object-menu').removeClass("hidden");
 		$('.object-menu .btn').unbind('click');
 		$('.object-menu select').unbind('change');
+		$('.object-menu #custom-commands-textarea').unbind('change');
 		$('.object-menu #color-picker').unbind('change');
 		$('.object-menu').removeClass("image-menu").removeClass("text-menu");
 		
@@ -776,6 +783,11 @@ var Page = Backbone.Model.extend({
 		$('.object-menu #goto-on-touch-select').val(mediaObject.getPageOnTouch() || '');
 		$('.object-menu #goto-on-touch-select').change(function() {
 			mediaObject.setPageOnTouch($(this).val());
+		});
+		
+		$('.object-menu #custom-commands-textarea').val(mediaObject.getCustomComands() || '');
+		$('.object-menu #custom-commands-textarea').change(function() {
+			mediaObject.setCustomComands($(this).val());
 		});
 	},
 	

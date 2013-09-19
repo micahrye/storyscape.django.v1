@@ -118,6 +118,12 @@ class PageMediaObject(models.Model):
                                 blank=True, null=True)  
     assoc_text = models.CharField(max_length=max_length_bytes, 
                                 blank=True, null=True)  
+    '''
+    Allow user to define custom commands for the object. This 
+    was originally implemented for collaboration with Georgia Tech. 
+    '''
+    custom_commands = models.CharField(max_length=max_length_bytes,
+                                blank=True, null=True)
 
     ''' WORKING on integrating text page media objects. 
         Need to consider assoc_text with images and ability
