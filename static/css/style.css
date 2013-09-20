@@ -1201,6 +1201,6 @@ p.notes {
 body.kinect-creator .context-controls .control-panel {
 	height:500px;
 }
-body.kinect-creator .control-panel #kinect-codes-textarea {
+body.kinect-creator .control-panel #custom-commands-textarea {
 	width:250px
 }
