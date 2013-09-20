@@ -21,6 +21,8 @@ the project etc. Here is an example:
 
 $ python manage.py runserver 0.0.0.0:8888  --settings=localsettings
 
+You will need to make sure to start a celery service 
 
+$ python src/manage.py celery worker --settings=localsettings &
 
 

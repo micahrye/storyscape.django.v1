@@ -58,6 +58,8 @@ KINECT_TRIGGER_CODES = OrderedDict([ ('Jump', 500),
 
 GOTO_PAGE_ACTION_CODE = 200
 
+
+
 def populate_pmo_from_json(pmo_json, z_index, story, page, existing_pmo):
     
     
@@ -280,12 +282,14 @@ def publish_story(request):
         You may want to change eclipse settings to ignore this. 
         Window -> Preferences -> PyDev -> Editor -> Code Analysis -> Imports -> Import not found -> Ignore
         '''
-        result = tasks.publish_story.delay(story.id)
-        
-        queued_tasks = request.session.get('queued_tasks', [])
-        queued_tasks.append(result)
-        request.session['queued_tasks'] = queued_tasks
-    
+        if not settings.DEBUG: 
+            result = tasks.publish_story.delay(story.id)
+            queued_tasks = request.session.get('queued_tasks', [])
+            queued_tasks.append(result)
+            request.session['queued_tasks'] = queued_tasks
+        else: 
+            tasks.publish_story(story.id)
+  
     return HttpResponse('success')
 
 @login_required

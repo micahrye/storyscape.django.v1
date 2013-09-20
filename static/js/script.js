@@ -704,7 +704,10 @@ var Page = Backbone.Model.extend({
 	selectElement: function($el) {
 		var mediaObject = $el.data("mediaObject"),
 			page = this;
-		
+		var oldMediaObject = $('.media-object.selected').data("mediaObject");
+		if(oldMediaObject){
+			oldMediaObject.setCustomComands($("#custom-commands-textarea").val()); 
+		}
 		StoryScape.currentStory.getCurrentPage().trigger("deselect");
 		$el.addClass('selected');
 		
