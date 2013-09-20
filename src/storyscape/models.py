@@ -118,7 +118,6 @@ class PageMediaObject(models.Model):
                                 blank=True, null=True)  
     assoc_text = models.CharField(max_length=max_length_bytes, 
                                 blank=True, null=True)  
-
     ''' WORKING on integrating text page media objects. 
         Need to consider assoc_text with images and ability
         to add it via builder UI.
