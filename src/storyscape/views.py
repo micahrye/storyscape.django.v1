@@ -79,7 +79,6 @@ def populate_pmo_from_json(pmo_json, z_index, story, page, existing_pmo):
             # we have the format #CCC and we need #CCCCCC
             pmo.font_color = "".join(["{0}{0}".format(x) for x in pmo.font_color])[1:]
 
-    print 'this is in the code'
     pmo.anime_code = pmo_json.get('action_code') or pmo.anime_code
     pmo.animate_on = pmo_json.get('action_trigger_code') or pmo.animate_on
     pmo.goto_page = pmo_json.get('page_on_touch') or pmo.goto_page
@@ -96,13 +95,7 @@ def populate_pmo_from_json(pmo_json, z_index, story, page, existing_pmo):
     pmo.assoc_text = pmo_json.get('text') or pmo.assoc_text
     pmo.custom_commands = pmo_json.get('custom_commands') or pmo.custom_commands
     pmo.media_type = pmo_json.get('type') or pmo.media_type
-    pmo.page = page
-    
-    print 'from_json: '
-    print pmo_json.get('custom_commands')
-    print 'pmo: '
-    print pmo.custom_commands
-    
+    pmo.page = page    
     pmo.save()
     
     return pmo
@@ -206,10 +199,9 @@ def save_story(request):
     '''
     Called from the Create page
     '''
-
     user = request.user
     story_json = simplejson.loads(request.POST.get("story"))
-
+    story_type = request.POST.get('story_type', 'standard')
 
     story_id = story_json.get("story_id")
     if story_id:
@@ -225,6 +217,7 @@ def save_story(request):
     
     story.tags = story_json.get("tags","")
     story.creator_name = user.username
+    story.story_type = story_type
     
     # a list of pages, and each page is a list of media objects
     pages_info = story_json.get("pages")
@@ -382,7 +375,7 @@ def create_story(request, story_id=None, kinect=False):
     
     user = request.user 
     
-    story= None    
+    story = None    
     if story_id:
         try:
             story = Story.objects.get(id=story_id, creator_uid=user.id)
@@ -474,9 +467,9 @@ def story_preview(request, story_id):
                               context_instance=RequestContext(request) )
 
 
-def api_list_stories(request): 
-     
-    stories = Story.objects.filter(is_published=True)
+def api_list_stories(request, story_type='kinect'): 
+    
+    stories = Story.objects.filter(is_published=True).filter(story_type=story_type)
     stories = story_list_to_json(stories)
     if 'callback' in request.REQUEST:
         stories = request.REQUEST['callback'] + '('+stories+');'

@@ -8,12 +8,19 @@ import tagging
 from medialibrary.models import MediaObject
 
 from unidecode import unidecode
+from collections import OrderedDict 
 
 DEFAULT_STORY_GENRE = "Children"
 
 # Create your models here.
 max_length_bytes = 16384
 class Story(models.Model):
+    '''
+    In class so user can easily check if story type from user/system is 
+    valid with a KeyError, so Story.STORY_TYPES['story_type_from_user'] 
+    '''
+    STORY_TYPES = OrderedDict(standard = 'Standard StoryScape Story', 
+                         kinect = 'Kinect Story', )
     # users represent all users who have added story to their 
     # personal library
     users = models.ManyToManyField(User)
@@ -38,6 +45,8 @@ class Story(models.Model):
     url = models.CharField(max_length=255, blank=True, null=True, unique=True)
     download_url = models.CharField(max_length=255, blank=True, null=True, unique=True)
     thumb_url = models.CharField(max_length=255, blank=True, null=True, unique=True)
+    
+    story_type = models.CharField(max_length=28, choices=STORY_TYPES.items(), default='standard')
     #NOTE: this is registered with tags
 
     #remixes = models.ManyToMany('self', blank=True, null=True)
