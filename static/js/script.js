@@ -1232,6 +1232,8 @@ StoryScape.initStoryCreation = function() {
 		$this.prop('disabled', true);
 		
 		var data = {'story':JSON.stringify(StoryScape.currentStory.toJSON())};
+		var storyType = $('#story-type').val();
+		data['story_type'] = storyType;
 		$.ajax("/storyscape/save/",
 			{
 				type: "POST",
