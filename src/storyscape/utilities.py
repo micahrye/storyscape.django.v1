@@ -1,5 +1,5 @@
 import commands, logging, random
-import os
+import os, StringIO
 
 from storyscape.models import Story, PageMediaObject, MediaObject
 from django.conf import settings
@@ -104,23 +104,22 @@ def story_to_xml(story, save_path):
     title = story.title.lower().replace(' ', '')
     title = unidecode(title)
     file_name = save_path + title + '.xml'
-    try:
-        f = open(file_name, 'w')
-    except IOError: raise
+    
+    stringbuilder = StringIO.StringIO()
 
     #If file w/ this name already exists, will be overwritten.
-    f.write('<?xml version="1.0"?> \n')
-    f.write('<book id="' + str(story.id) + '">' + '\n')
-    f.write('    <author>' + story.creator_name + '</author> \n')
-    f.write('    <title>' + story.title.encode('utf8') + '</title> \n')
-    f.write('    <genre>' + story.genre + '</genre> \n')
-    f.write('    <pub_date>' + str(story.pub_date.year) + '-' + str(story.pub_date.day)
+    stringbuilder.write('<?xml version="1.0"?> \n')
+    stringbuilder.write('<book id="' + str(story.id) + '">' + '\n')
+    stringbuilder.write('    <author>' + story.creator_name + '</author> \n')
+    stringbuilder.write('    <title>' + story.title.encode('utf8') + '</title> \n')
+    stringbuilder.write('    <genre>' + story.genre + '</genre> \n')
+    stringbuilder.write('    <pub_date>' + str(story.pub_date.year) + '-' + str(story.pub_date.day)
             + '-' + str(story.pub_date.month) + '</pub_date> \n')
-    f.write('    <description>' + story.description.encode('utf8') + '</description> \n')
-    f.write('    <book_pages number_pages="' + str(len(pages)) + '"> \n')
+    stringbuilder.write('    <description>' + story.description.encode('utf8') + '</description> \n')
+    stringbuilder.write('    <book_pages number_pages="' + str(len(pages)) + '"> \n')
 
     for p in pages:
-        f.write('        <page page_number="' + str(p.page_number) + '"> \n')
+        stringbuilder.write('        <page page_number="' + str(p.page_number) + '"> \n')
         pmos = p.pagemediaobject_set.order_by('z_index')
         for pmo in pmos:
             mo_type = pmo.media_type
@@ -146,10 +145,11 @@ def story_to_xml(story, save_path):
                         + '" goto_page="'  + goto_page  \
                         + '" anime_code="' + anime_code  \
                         + '" animate_on="' + animate_on + '"></media_object>' + '\n'
-                f.write(output.encode('UTF-8'))
+                stringbuilder.write(output.encode('UTF-8'))
                 #NOTE: at some point may have associated text with image... 
             elif mo_type == 'text':
-                assoc_text = pmo.assoc_text.replace("\n", "&#10;")
+                assoc_text = pmo.assoc_text or ''
+                assoc_text = assoc_text.replace("\n", "&#10;")
                 output = '<media_object type="' + mo_type  \
                         + '" xcoor="' + xcoor + '" ycoor="' + ycoor  \
                         + '" width="' + width + '" height="' + height  \
@@ -161,13 +161,17 @@ def story_to_xml(story, save_path):
                         + '" anime_code="' + anime_code  \
                         + '" animate_on="' + animate_on + '">'  \
                         + assoc_text + '</media_object>' + '\n'
-                f.write(output.encode('UTF-8'))
+                stringbuilder.write(output.encode('UTF-8'))
             else:
                 pass
-        f.write('        </page> \n')
-    f.write('    </book_pages> \n')
+        stringbuilder.write('        </page> \n')
+    stringbuilder.write('    </book_pages> \n')
 
-    f.write('</book>')
+    stringbuilder.write('</book>')
+    
+    
+    f = open(file_name, 'w')
+    f.write(stringbuilder.getvalue())
     f.close()
 
 

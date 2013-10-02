@@ -102,6 +102,7 @@ def get_media_objects(request):
     paginator = Paginator(objs, NUM_ITEMS_PER_PAGE)
     
     page_number = min(paginator.num_pages, page_number)
+    page_number = max(page_number, 1)
     objs = paginator.page(page_number).object_list
     
     favorited_ids = []
@@ -150,13 +151,14 @@ def image_upload(request):
         form = ImageUploadForm(request.POST, request.FILES, instance=mo)
         valid = form.is_valid()
         if valid:
-            ftype = request.FILES['upload_image'].name[-3:].lower()
+            filename, ext = os.path.splitext(request.FILES['upload_image'].name)
+            ftype = ext[1:].lower()
             
             # IMPORTANT!!! need to change label to match actual match image format
             mf, _ = MediaFormat.objects.get_or_create(label=ftype) 
             mt, _ = MediaType.objects.get_or_create(label="StillImage") 
             mo.creation_datetime = datetime.datetime.today() 
-            mo.name = request.FILES['upload_image'].name[:-4][:MEDIAOBJECT_max_length_name-1]
+            mo.name = filename[:MEDIAOBJECT_max_length_name-1]
             mo.format = mf
             mo.type = mt
             mo.publisher = 'sodiioo'
@@ -186,7 +188,8 @@ def image_upload(request):
             mod_url = org_url = settings.MEDIALIBRARY_URL_ROOT + mo.url 
             mod_url = mod_url.replace('/org/', '/mod/')
             mod_url = mod_url.replace('/'+ftype+'/', '/png/')
-            mod_url = mod_url[:-3] + 'png'
+            mod_url = mod_url.replace('.'+ftype, '.png')
+            
             if not os.path.exists(os.path.split(mod_url)[0]):
                 os.makedirs(os.path.split(mod_url)[0])
             # TODO: should probably use PIL instead of convert from commands

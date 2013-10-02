@@ -337,7 +337,7 @@ def get_user_stories(request):
     
     user = request.user
     
-    stories = Story.objects.filter(users=user).filter(creator_uid=user.id).order_by('creation_datetime')    
+    stories = Story.objects.filter(users=user).filter(creator_uid=user.id).order_by('-creation_datetime')    
 
     stories_json = story_list_to_json(stories)
 
@@ -467,9 +467,15 @@ def story_preview(request, story_id):
                               context_instance=RequestContext(request) )
 
 
-def api_list_stories(request, story_type='kinect'): 
+def api_list_stories(request, story_type='kinect'):
+    
+    search_term = request.GET.get("search")
     
     stories = Story.objects.filter(is_published=True).filter(story_type=story_type)
+
+    if search_term:
+        stories = stories.filter(Q(title__contains=search_term) | Q(creator_name__contains=search_term))
+
     stories = story_list_to_json(stories)
     if 'callback' in request.REQUEST:
         stories = request.REQUEST['callback'] + '('+stories+');'
@@ -534,8 +540,14 @@ def story_download_list(request):
     '''
     Called from the app to show all the stories available for download
     '''
+
+    search_term = request.GET.get("search")
     
     stories = Story.objects.filter(is_published=True, is_public = True)
+
+    if search_term:
+        stories = stories.filter(Q(title__contains=search_term) | Q(creator_name__contains=search_term))
+    
     download_urls = ", ".join([get_download_url(story) for story in stories])
     return HttpResponse(download_urls)
 

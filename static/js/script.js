@@ -585,21 +585,26 @@ var Page = Backbone.Model.extend({
 	},
 	
 	addImage: function(objectId, objectURL) {
-		var $img = $('<img src="' + objectURL + '">');
 		
-		var mediaObject = new MediaObject();
-		
-		mediaObject.setX((this.width - $img.actual('width')) / 2);
-		mediaObject.setY((this.height - $img.actual('height')) / 2);
-		mediaObject.setWidth($img.actual('width'));
-		mediaObject.setHeight($img.actual('height'));
-		mediaObject.setType("image");
-		mediaObject.setObjectId(objectId);
-		mediaObject.setURL(objectURL);
+		var image = new Image();
+		image.onload = _.bind(function() {
 
-		this.get("media_objects").add(mediaObject);
+			var mediaObject = new MediaObject();
+			
+			mediaObject.setX((this.width - image.width) / 2);
+			mediaObject.setY((this.height - image.height) / 2);
+			mediaObject.setWidth(image.width);
+			mediaObject.setHeight(image.height);
+			mediaObject.setType("image");
+			mediaObject.setObjectId(objectId);
+			mediaObject.setURL(objectURL);
+
+			this.get("media_objects").add(mediaObject);
+			
+			this.createElForMediaObject(mediaObject);
+		}, this);
+		image.src = objectURL;
 		
-		this.createElForMediaObject(mediaObject);
 	},
 	
 	addText: function() {
@@ -949,11 +954,13 @@ var Story = Backbone.Model.extend({
 		this.bind("beensaved", function() {
 			$(window).unbind("beforeunload", StoryScape.onUnload);
 			$("#unsaved-message").css("display","none");
+			this.dirty = false;
 		})
 		this.bind("change", function() {
 			$(window).unbind("beforeunload", StoryScape.onUnload);
 			$(window).bind('beforeunload', StoryScape.onUnload);
 			$("#unsaved-message").css("display","inline-block");
+			this.dirty = true;
 		})
 		this.trigger("beensaved");
 		
@@ -1227,6 +1234,10 @@ StoryScape.initStoryCreation = function() {
 			toastr['error']("Cannot save, make sure your story has a title, description, and tags");
 			return;
 		}
+		if (! $('#story-title').val().match(/^[a-z0-9 \-_]+$/i)) {
+			toastr['error']("We can only handle story titles with alphanumeric characters and spaces at the moment");
+			return;
+		}
 		
 		var $this = $(this);
 		$this.prop('disabled', true);
@@ -1264,6 +1275,12 @@ StoryScape.initStoryCreation = function() {
 		if ($(this).hasClass("disabled")) {
 			return;
 		}
+		
+		var really = confirm("You sure?\n\nThis will delete your story and you can never get it back, ever again.");
+		
+		if (! really) {
+			return;
+		}
 
 		var $this = $(this);
 		$this.prop('disabled', true);
@@ -1286,6 +1303,13 @@ StoryScape.initStoryCreation = function() {
 	$("#publish-story").click(function() {
 		if ($(this).hasClass("disabled")) {
 			return;
+		}
+		
+		if (StoryScape.currentStory.dirty) {
+			var really = confirm("You have unsaved changes. They will not be published until you save them. Are you sure you want to continue?");
+			if ( ! really ) {
+				return;
+			}
 		}
 
 		var $this = $(this);
