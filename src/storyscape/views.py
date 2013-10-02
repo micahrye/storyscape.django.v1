@@ -337,7 +337,7 @@ def get_user_stories(request):
     
     user = request.user
     
-    stories = Story.objects.filter(users=user).filter(creator_uid=user.id).order_by('creation_datetime')    
+    stories = Story.objects.filter(users=user).filter(creator_uid=user.id).order_by('-creation_datetime')    
 
     stories_json = story_list_to_json(stories)
 

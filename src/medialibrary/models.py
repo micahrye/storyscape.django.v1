@@ -6,7 +6,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
 
-import tagging
+import tagging, os
 from tagging.fields import TagField
 
 from django.forms import ModelForm, BooleanField, ValidationError
@@ -23,8 +23,9 @@ def upload_file_to(instance, filename):
     # this way we spread out where images saved, but always in the 
     # same dir for a user
     # note instance is a User object see view where instance set from request.user
-    ftype = filename[-3:].lower()
-    filename = filename[:-3] + ftype
+    filename_base, ext = os.path.splitext(filename)
+    ftype = ext[1:].lower()
+    filename = filename_base + "." + ftype
     path = settings.MEDIAOBJECT_UPLOAD_URL_ROOT_DIR_NAME +'/org/' + ftype + '/' 
     
     #IMPORTANT: what to know the file type since we sort into different dirs ... 
@@ -89,7 +90,7 @@ class MediaObject(models.Model):
     original = models.BooleanField(default=False)
     # used for form for uploading image 
     upload_image = models.ImageField(upload_to=upload_file_to,
-                                       max_length=60, blank=False, null=True)
+                                       max_length=128, blank=False, null=True)
     #tags, this model is registered below with django-tagging
     has_tag = models.IntegerField(blank=True, null=True, default=0)
     mo_tags = TagField(verbose_name = "Image Tags")
