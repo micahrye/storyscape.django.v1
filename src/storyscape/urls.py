@@ -2,9 +2,13 @@ from django.conf.urls.defaults import patterns, url
 
 urlpatterns = patterns('storyscape.views',
 
+    url(r'^api/get_story/$', 'api_get_story', name='api_get_story'),
+    url(r'^api/list_stories/(?P<story_type>\w+)/$', 'api_list_stories', name='api_list_story'),
+
     url(r'^$', 'stories_library', name='stories_library'),
     url(r'^edit/(?P<story_id>\d+)/$', 'create_story', name='edit_story'),
     url(r'^create/$', 'create_story', name='create_story'), 
+    url(r'^kinect/create/$', 'create_kinect_story', name='create_kinect_story'), 
     url(r'^my_stories/$', 'get_user_stories', name='get_user_stories'),
 
     url(r'^stories/$', 'get_stories', name='get_stories'), 

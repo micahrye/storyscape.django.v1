@@ -12,6 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
 
+
 from django.db.models.query import QuerySet
 from decorators import ajax_required
 from django.views.decorators.http import require_POST, require_GET
@@ -50,7 +51,14 @@ ACTION_CODES = OrderedDict([('Fade Out',105),
                 ('Slide Left',116),
                 ('Slide Right',101),
                 ]);
+
+KINECT_TRIGGER_CODES = OrderedDict([ ('Jump', 500), 
+                                    ('Wave', 501),
+                                    ('Nod', 502), ])
+
 GOTO_PAGE_ACTION_CODE = 200
+
+
 
 def populate_pmo_from_json(pmo_json, z_index, story, page, existing_pmo):
     
@@ -85,10 +93,9 @@ def populate_pmo_from_json(pmo_json, z_index, story, page, existing_pmo):
     pmo.width = pmo_json.get('width') or pmo.width
     pmo.height = pmo_json.get('height') or pmo.height
     pmo.assoc_text = pmo_json.get('text') or pmo.assoc_text
+    pmo.custom_commands = pmo_json.get('custom_commands') or pmo.custom_commands
     pmo.media_type = pmo_json.get('type') or pmo.media_type
-    pmo.page = page
-
-    
+    pmo.page = page    
     pmo.save()
     
     return pmo
@@ -133,6 +140,7 @@ def pmo_to_json(pmo):
                     width = pmo.width,
                     height = pmo.height,
                     text = pmo.assoc_text,
+                    custom_commands = pmo.custom_commands,
                     )
     if pmo.media_object:
         pmo_json['url'] = settings.MEDIA_URL + pmo.media_object.url
@@ -191,10 +199,9 @@ def save_story(request):
     '''
     Called from the Create page
     '''
-
     user = request.user
     story_json = simplejson.loads(request.POST.get("story"))
-
+    story_type = request.POST.get('story_type', 'standard')
 
     story_id = story_json.get("story_id")
     if story_id:
@@ -210,6 +217,7 @@ def save_story(request):
     
     story.tags = story_json.get("tags","")
     story.creator_name = user.username
+    story.story_type = story_type
     
     # a list of pages, and each page is a list of media objects
     pages_info = story_json.get("pages")
@@ -261,11 +269,20 @@ def publish_story(request):
     story = Story.objects.get(id=request.POST['story_id'])
     
     if story:
-        result = tasks.publish_story.delay(story.id)
-        queued_tasks = request.session.get('queued_tasks', [])
-        queued_tasks.append(result)
-        request.session['queued_tasks'] = queued_tasks
-    
+        '''
+        this line will error becase static code-analsys only sees what 
+        you see, not runtime info that would result in delay being there. 
+        You may want to change eclipse settings to ignore this. 
+        Window -> Preferences -> PyDev -> Editor -> Code Analysis -> Imports -> Import not found -> Ignore
+        '''
+        if not settings.DEBUG: 
+            result = tasks.publish_story.delay(story.id)
+            queued_tasks = request.session.get('queued_tasks', [])
+            queued_tasks.append(result)
+            request.session['queued_tasks'] = queued_tasks
+        else: 
+            tasks.publish_story(story.id)
+  
     return HttpResponse('success')
 
 @login_required
@@ -340,15 +357,25 @@ def load_story(request):
     
     return HttpResponse(story_json)
 
+
 @login_required
-def create_story(request, story_id=None):
+def create_kinect_story(request, story_id=None):
+    
+    rtn_data = create_story(request, story_id, True)
+    rtn_data['action_trigger_codes'] = KINECT_TRIGGER_CODES 
+    
+    return render_to_response( 'storyscape/create_kinect.html', rtn_data, 
+                               context_instance=RequestContext(request) )
+
+@login_required
+def create_story(request, story_id=None, kinect=False):
     '''
     Called from the create page to save a story. contrary to the name, can be used to save an existing story. um, sorry.
     '''
     
     user = request.user 
     
-    story= None    
+    story = None    
     if story_id:
         try:
             story = Story.objects.get(id=story_id, creator_uid=user.id)
@@ -357,15 +384,18 @@ def create_story(request, story_id=None):
 
     ml = MediaLibrary.objects.get(user=user)
     media_objects = ml.media_object.filter(Q(format__label='png') | Q(format__label='jpg')).order_by('-id')[:NUM_ITEMS_PER_PAGE]
-
     
-    return render_to_response('storyscape/create.html',
-                 {'user': request.user, 
+    rtn_data = {'user': request.user, 
                   'story': story,
                   'show_favorites_library': True,
                   "media_objects": media_objects,
                   'action_codes':ACTION_CODES,
-                  'action_trigger_codes':ACTION_TRIGGER_CODES},
+                  'action_trigger_codes':ACTION_TRIGGER_CODES}
+    if kinect:
+        return rtn_data
+    
+    return render_to_response('storyscape/create.html',
+                 rtn_data,
                  context_instance=RequestContext(request))
 
 def stories_library(request):
@@ -435,6 +465,38 @@ def story_preview(request, story_id):
                                    action_trigger_codes=ACTION_TRIGGER_CODES,
                                    from_page=request.GET.get("from","")),
                               context_instance=RequestContext(request) )
+
+
+def api_list_stories(request, story_type='kinect'): 
+    
+    stories = Story.objects.filter(is_published=True).filter(story_type=story_type)
+    stories = story_list_to_json(stories)
+    if 'callback' in request.REQUEST:
+        stories = request.REQUEST['callback'] + '('+stories+');'
+        return HttpResponse(stories, mimetype='application/json') 
+    
+    return HttpResponse( stories )
+
+
+@require_GET
+def api_get_story(request): 
+    
+    story_id = request.GET.get('STORY_ID', -1)
+    if 'STORY_ID' in request.GET:
+        try: 
+            story = Story.objects.get(id=story_id)
+        except Story.DoesNotExist:
+            return HttpResponse('story id does not exist')
+        story = story_to_json(story)
+        '''
+        If the request is for jsonp we handle it here
+        '''
+        if 'callback' in request.REQUEST:
+            story = request.REQUEST['callback'] + '('+story+');'
+            return HttpResponse(story, mimetype='application/json') 
+        return HttpResponse( story )    
+    
+    return HttpResponse("nothing to see here")
 
 
 @require_GET
