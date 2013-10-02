@@ -102,6 +102,7 @@ def get_media_objects(request):
     paginator = Paginator(objs, NUM_ITEMS_PER_PAGE)
     
     page_number = min(paginator.num_pages, page_number)
+    page_number = max(page_number, 1)
     objs = paginator.page(page_number).object_list
     
     favorited_ids = []

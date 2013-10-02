@@ -1212,6 +1212,10 @@ StoryScape.initStoryCreation = function() {
 			toastr['error']("Cannot save, make sure your story has a title, description, and tags");
 			return;
 		}
+		if (! $('#story-title').val().match(/^[a-z0-9 \-_]+$/i)) {
+			toastr['error']("We can only handle story titles with alphanumeric characters and spaces at the moment");
+			return;
+		}
 		
 		var $this = $(this);
 		$this.prop('disabled', true);

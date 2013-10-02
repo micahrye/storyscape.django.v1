@@ -29,6 +29,9 @@ DEFAULT_CELERYD="-m celery.bin.celeryd_detach"
 
 CELERY_DEFAULTS=${CELERY_DEFAULTS:-"/etc/default/celeryd"}
 
+CELERYD_USER="www-data"
+CELERYD_GROUP="www-data"
+
 test -f "$CELERY_DEFAULTS" && . "$CELERY_DEFAULTS"
 
 # Set CELERY_CREATE_DIRS to always create log/pid dirs.
