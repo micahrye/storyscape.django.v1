@@ -920,7 +920,7 @@ var Story = Backbone.Model.extend({
 	    	$("#goto-on-touch-select").empty();
 	    	$("#goto-on-touch-select").append("<option></option>");
 	    	for (var i = 1; i <= this.getNumPages(); i++) {
-		    	$("#goto-on-touch-select").append('<option value="' + i + '">' + i + '</option>');
+		    	$("#goto-on-touch-select").append('<option value="' + (i - 1) + '">' + i + '</option>');
 	    	}
 	    });
 		
@@ -953,13 +953,13 @@ var Story = Backbone.Model.extend({
 		
 		this.bind("beensaved", function() {
 			$(window).unbind("beforeunload", StoryScape.onUnload);
-			$("#unsaved-message").css("display","none");
+			$("#unsaved-message").css("opacity",0);
 			this.dirty = false;
 		})
 		this.bind("change", function() {
 			$(window).unbind("beforeunload", StoryScape.onUnload);
 			$(window).bind('beforeunload', StoryScape.onUnload);
-			$("#unsaved-message").css("display","inline-block");
+			$("#unsaved-message").css("opacity",1);
 			this.dirty = true;
 		})
 		this.trigger("beensaved");

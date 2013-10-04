@@ -1097,8 +1097,19 @@ background-color:rgba(0,0,0,0)}
 }
 .unsaved-message {
 	vertical-align:baseline;
-	font-size:24px;
-	display:none;
+	font-size:38px;
+	opacity:0;
+	cursor:default;
+	color:#bb3333;
+	font-weight:400;
+	transition: opacity 300ms;
+    -webkit-transition: opacity 300ms;
+    -moz-transition: opacity 300ms;
+    -o-transition: opacity 300ms;
+    -webkit-user-select: none; /* Chrome/Safari */        
+	-moz-user-select: none; /* Firefox */
+	-ms-user-select: none; /* IE10+ */
+	display:inline;
 }
 #create-story-form label.error {
 	display:none;
