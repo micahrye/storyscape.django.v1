@@ -660,6 +660,9 @@ background-color:rgba(0,0,0,0)}
 .media-object.text-media-object {
 	padding:0px;
 }
+.text-media-object{ 
+    background-color:rgba(255,255,255,0.625); 
+} 
 .media-object > img {
 	height:100%;
 	width:100%;
