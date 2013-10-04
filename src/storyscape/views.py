@@ -474,7 +474,7 @@ def api_list_stories(request, story_type='kinect'):
     stories = Story.objects.filter(is_published=True).filter(story_type=story_type)
 
     if search_term:
-        stories = stories.filter(Q(title__contains=search_term) | Q(creator_name__contains=search_term))
+        stories = stories.filter(Q(title__icontains=search_term) | Q(creator_name__icontains=search_term))
 
     stories = story_list_to_json(stories)
     if 'callback' in request.REQUEST:
@@ -546,7 +546,7 @@ def story_download_list(request):
     stories = Story.objects.filter(is_published=True, is_public = True)
 
     if search_term:
-        stories = stories.filter(Q(title__contains=search_term) | Q(creator_name__contains=search_term))
+        stories = stories.filter(Q(title__icontains=search_term) | Q(creator_name__icontains=search_term))
     
     download_urls = ", ".join([get_download_url(story) for story in stories])
     return HttpResponse(download_urls)
