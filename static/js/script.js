@@ -1571,8 +1571,8 @@ StoryScape.initStoryPreview = function() {
 			if (mediaObject.getActionTriggerCode() == ACTION_TRIGGER_CODES['Touch']) {
 				StoryScape.animateElement($el, mediaObject.getActionCode());
 			}
-			if (mediaObject.getPageOnTouch() >= 1) {
-				StoryScape.currentStory.changePage(mediaObject.getPageOnTouch() - 1);
+			if (mediaObject.getPageOnTouch() >= 0) {
+				StoryScape.currentStory.changePage(mediaObject.getPageOnTouch());
 			}
 		});
 		
