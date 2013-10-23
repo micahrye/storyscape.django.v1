@@ -1095,11 +1095,12 @@ background-color:rgba(0,0,0,0)}
 	overflow:hidden;
 	text-overflow:ellipsis;
 	max-width:900px;
-	vertical-align:baseline;
+	vertical-align:top;
 	margin-right:10px;
 }
 .unsaved-message {
-	vertical-align:baseline;
+	vertical-align:top;
+	margin-top:15px;
 	font-size:38px;
 	opacity:0;
 	cursor:default;
@@ -1112,7 +1113,7 @@ background-color:rgba(0,0,0,0)}
     -webkit-user-select: none; /* Chrome/Safari */        
 	-moz-user-select: none; /* Firefox */
 	-ms-user-select: none; /* IE10+ */
-	display:inline;
+	display:inline-block;
 }
 #create-story-form label.error {
 	display:none;

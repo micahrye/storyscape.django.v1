@@ -186,6 +186,8 @@ def image_upload(request):
             mod_mo.publisher = mo.publisher 
             #create new image and assign url
             mod_url = org_url = settings.MEDIALIBRARY_URL_ROOT + mo.url 
+            
+            
             mod_url = mod_url.replace('/org/', '/mod/')
             mod_url = mod_url.replace('/'+ftype+'/', '/png/')
             mod_url = mod_url.replace('.'+ftype, '.png')
@@ -195,10 +197,7 @@ def image_upload(request):
             # TODO: should probably use PIL instead of convert from commands
             
             mod_url = mod_url.replace(settings.MEDIALIBRARY_URL_ROOT, '')
-            i = 0
-            while i < 10 and MediaObject.objects.filter(url = mod_url).count():
-                mod_url = mod_url[:-4] + generate_id() + mod_url[-4:]
-            
+                        
             cmd = 'convert -resize 300x300 ' + org_url + ' ' + settings.MEDIALIBRARY_URL_ROOT + mod_url
             _ = commands.getoutput(cmd)
             

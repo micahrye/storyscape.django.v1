@@ -1117,7 +1117,7 @@ StoryScape.finishMediaObjectElInit = function($el, mediaObject) {
 StoryScape.initStoryCreation = function() {
 	
 	StoryScape.finishMediaObjectElInit = function($el, mediaObject) {
-		$el.drags({area:$('#builder-pane'), exempt:".ui-resizable-handle,.remove-media-object,.edit-text-icon"});
+		$el.drags({area:$('body'), exempt:".ui-resizable-handle,.remove-media-object,.edit-text-icon"});
 		$el.mousedown(function(e) {
 			e.stopPropagation();
 			if ($(this).hasClass("selected")) {
