@@ -244,3 +244,35 @@ def remove_dir_files(dir_path, exempt=[]):
         # remove file, error if dir 
             os.remove(dir_path+f)
 
+def create_story_copy(story, user, title):
+    
+    story.creator_uid = user.id
+    story.creator_name = user.username
+    story.title = title
+    story.get_filesave_path()
+    story.is_published = False
+    
+    pages = list(story.page_set.all())
+    pmos = dict()
+    
+    for page in pages:
+        pmos[page.page_number] = list(page.pagemediaobject_set.all())
+    
+    story.id = None
+    story.save()
+    
+    print pages
+    
+    for page in pages:
+        page.story = story
+        page.id = None
+        page.save()
+        
+        for pmo in pmos[page.page_number]:
+            pmo.page = page
+            pmo.id = None
+            print pmo.download_media_url
+            pmo.download_media_url = None
+            pmo.thumb_url = None
+            pmo.save()
+    
