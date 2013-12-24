@@ -52,9 +52,9 @@ ACTION_CODES = OrderedDict([('Fade Out',105),
                 ('Slide Right',101),
                 ]);
 
-KINECT_TRIGGER_CODES = OrderedDict([ ('Jump', 500), 
-                                    ('Wave', 501),
-                                    ('Nod', 502), ])
+KINECT_TRIGGER_CODES = OrderedDict([ ('Touch', 1), 
+                                    ('Sound', 2),
+                                    ('Shake', 12), ])
 
 GOTO_PAGE_ACTION_CODE = 200
 
